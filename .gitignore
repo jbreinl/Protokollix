@@ -1,0 +1,23 @@
+# Temporäre Python-Dateien / Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtuelle Umgebungen (falls vorhanden)
+.venv/
+venv/
+env/
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db
+
+# Build-Ordner (wenn du später mal eine .exe erstellst)
+dist/
+build/
+*.spec
+
+# Alle Excel-Dateien ignorieren
+*.xlsx
+*.xls
+*.csv
