@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import re
 import sympy as sp
+
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application
 # 1. Zwingt Matplotlib dazu, PySide6 statt PyQt6 zu verwenden!
 os.environ["QT_API"] = "pyside6"
@@ -32,14 +33,14 @@ from matplotlib.figure import Figure
 
 TRANSLATIONS = {
     "de": {
-        "title": "Protokollix - © 2026 Jakob Breinl",
+        "title": "Protokollix - © 2026",
         "tab_general": "Allgemeines",
         "tab_data": "Daten",
         "tab_style": "Style",
         "tab_import": "Importieren/Exportieren",
         "btn_excel": "Excel öffnen",
         "btn_save": "Plot speichern unter...",
-        "btn_groesstfehler": "Datenmanipulation und Fehlerrechnung",
+        "btn_groesstfehler": "Datenmanipulation | Fehlerrechnung",
         "btn_mittelwert": "Mittelwertrechner",
         "lbl_active_ds": "Aktiver Datensatz (Y):",
         "lbl_title_input": "Plot-Titel (LaTeX-Support):",
@@ -77,14 +78,20 @@ TRANSLATIONS = {
             "<h2>Protokollix</h2>"
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "Ein Werkzeug zur schnellen Datenauswertung, Plot-Erstellung und Größtfehlerberechnung "
-            "für physikalische Praktika und wissenschaftliche Berichte, entwickelt von Jakob B. aus Langeweile in den Sommerferien.<br><br>"
+            "für physikalische Praktika und wissenschaftliche Berichte, entwickelt von J.B. aus Langeweile in den Sommerferien :D .<br><br>"
             "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, Pandas, Numpy, Matplotlib &amp; SymPy.</i>"),
         "Mittelwert_title": "Mittelwert-Rechner",
         "Mittelwert_header": "Mittelwert & Standardabweichung berechnen",
         "Mittelwert_open": "Excel für Mittelwerte laden",
         "Mittelwert_save": "Mittelwerte als Excel speichern",
         "lbl_color": "Linien und Markerfarbe:",
-        "choose_color": "Farbe wählen"
+        "choose_color": "Farbe wählen",
+        "initial_title": "keine Daten geladen",
+        "initial_title": "noch keine Daten geladen",
+        "default_x_axis": "X-Achse",
+        "default_y_axis": "Y-Achse",
+        "btn_reset": "Originialdaten wiederherstellen",
+        "mean_preview_table": "Daten/Ergebnistabelle"
 
     },
     "en": {
@@ -95,7 +102,7 @@ TRANSLATIONS = {
         "tab_import": "Import/Export",
         "btn_excel": "Open Excel",
         "btn_save": "Save Plot as...",
-        "btn_groesstfehler": "Data Manipulation & Error Calculation",
+        "btn_groesstfehler": "Data Manipulation | Error Calculation",
         "btn_mittelwert": "Mean Calculator",
         "lbl_active_ds": "Active Dataset (Y):",
         "lbl_title_input": "Plot Title (LaTeX Support):",
@@ -136,11 +143,16 @@ TRANSLATIONS = {
             "for physics lab courses and scientific reports.<br><br>"
             "<i>Developed with Python, Numpy, Pandas, PySide6, Matplotlib &amp; SymPy.</i>"),
         "Mittelwert_title": "mean calculator",
-        "Mittelwert_header": "calculate mean & mean error",
-        "Mittelwert_open": "open excel",
-        "Mittelwert_save": "save as excel",
+        "Mittelwert_header": "Calculate Mean & Mean Error",
+        "Mittelwert_open": "Open Excel",
+        "Mittelwert_save": "Save as Excel",
         "lbl_color": "Colour:",
-        "choose_color": "Choose Colour"
+        "choose_color": "Choose Colour",
+        "initial_title": "No data available",
+        "default_x_axis": "X-Axis",
+        "default_y_axis": "Y-Axis",
+        "btn_reset": "Reset Data",
+        "mean_preview_table": "Data Table & Results:"
         
     }
 }
@@ -365,17 +377,17 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # Keine Extra-Delegates nötig! Direkt Unicode verwenden:
         self.polyfit_combo.addItem("None", None)
         self.polyfit_combo.addItem("linear: y = kx + d", "poly_1")
-        self.polyfit_combo.addItem("quadratisch: y = ax² + bx + c", "poly_2")
-        self.polyfit_combo.addItem("kubisch (3. Grad)", "poly_3")
-        self.polyfit_combo.addItem("Exponential: y = A · eᵇˣ", "exp")
+        self.polyfit_combo.addItem("quadratic: y = ax² + bx + c", "poly_2")
+        self.polyfit_combo.addItem("cubic", "poly_3")
+        self.polyfit_combo.addItem("exponential: y = A · eᵇˣ", "exp")
         self.polyfit_combo.addItem("Andrade / Invers-Expo: y = A · eᵇᐟˣ", "andrade")
-        self.polyfit_combo.addItem("Sättigung: y = A · (1 - e⁻ᵇˣ)", "saettigung")
+        self.polyfit_combo.addItem("saturation: y = A · (1 - e⁻ᵇˣ)", "saettigung")
         self.polyfit_combo.setCurrentIndex(0)
         trafo_tab_layout.addWidget(self.polyfit_combo)
 
         # Polyfit Label
         self.polyfit_input_label = QLineEdit()
-        self.polyfit_input_label.setPlaceholderText("Label des Fits: z.B. linearer Fit")
+        self.polyfit_input_label.setPlaceholderText("Label des Fits: z.B. linearer Fit (LaTeX Support)")
         self.polyfit_input_label.setEnabled(False)
         trafo_tab_layout.addWidget(self.polyfit_input_label)
 
@@ -384,7 +396,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.datentab_label = QLabel("Mathematische Operationen und Tools:")
         trafo_tab_layout.addWidget(self.datentab_label)
     # Button für den Größtfehler-Rechner anlegen
-        self.btn_groesstfehler = QPushButton("Datenmanipulation und Fehlerrechnung")
+        self.btn_groesstfehler = QPushButton("Datenmanipulation | Fehlerrechnung")
         self.btn_groesstfehler.setStyleSheet("font-weight: bold;")
         
         # Den Button mit der eben getippten Methode verbinden
@@ -396,7 +408,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
     #Button zum Zurücksetzen der Daten
 
-        self.btn_reset_data = QPushButton("Originaldaten wiederherstellen (Reset)")
+        self.btn_reset_data = QPushButton()
         self.btn_reset_data.clicked.connect(self.reset_daten)
         trafo_tab_layout.addWidget(self.btn_reset_data)
 
@@ -412,7 +424,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         
         self.logaxis_combo = QComboBox()
         # Keine Extra-Delegates nötig! Direkt Unicode verwenden:
-        self.logaxis_combo.addItem("Normal (linear)", "linear")
+        self.logaxis_combo.addItem("default (linear)", "linear")
         self.logaxis_combo.addItem("semilogY", "semilogy")
         self.logaxis_combo.addItem("semilogX", "semilogx")
         self.logaxis_combo.addItem("loglog", "loglog")
@@ -649,9 +661,16 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         grid_aktiv = self.grid_checkbox.isChecked()  # Gibt True oder False zurück
 
         #Beschriftungen
-        self.ax.set_title(titel_text if titel_text else self.initial_title, fontsize = fontsize)
-        self.ax.set_xlabel(x_text if x_text else "X-Achse", fontsize = fontsize * 0.80)
-        self.ax.set_ylabel(y_text if y_text else "Y-Achse", fontsize = fontsize * 0.80)
+        # Übersetzungspaket für leere Achsenbeschriftungen holen
+        t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
+        default_title = t.get("initial_title", "noch keine Daten geladen")
+        default_x = t.get("default_x_axis", "X-Achse")
+        default_y = t.get("default_y_axis", "Y-Achse")
+
+        # Beschriftungen setzen
+        self.ax.set_title(titel_text if titel_text else default_title, fontsize=fontsize)
+        self.ax.set_xlabel(x_text if x_text else default_x, fontsize=fontsize * 0.80)
+        self.ax.set_ylabel(y_text if y_text else default_y, fontsize=fontsize * 0.80)
 
         # In plot_aktualisieren():
         # Berechne die maximale Anzahl an Gitterlinien basierend auf der Schriftgröße
@@ -884,12 +903,12 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         msgBox = QMessageBox(self)
         msgBox.setIcon(QMessageBox.Icon.Information)
         msgBox.setWindowTitle("Hinweis zum Excel-Format")
-        msgBox.setText("<b>Optimale Struktur für den Datei-Import</b>")
+        msgBox.setText("<b>Optimale Struktur für den Datei-Import</b>" if self.aktuelle_sprache == "de" else "<b>Optimized layout for data import</b>")
         
         # HTML-Tabelle mit Anschauungsbeispiel bauen
-        html_text = (
+        html_text_deutsch = (
             "Damit die Daten fehlerfrei eingelesen werden, beachte bitte folgendes (beispielhaftes) Format:<br><br>"
-            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; font-family: sans-serif; text-align: center;'>"
+            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
             "  <tr style='background-color: #e0e0e0; font-weight: bold;'>"
             "    <td>Zeit t / s</td><td>T1 / °C</td><td>T2 / °C</td><td>P / W</td>"
             "  </tr>"
@@ -900,13 +919,34 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             "<b>Wichtige Regeln:</b>"
             "<ul style='margin-top: 4px; padding-left: 20px;'>"
             "  <li>Erste Spalte = <b>X-Daten</b>, alle weiteren Spalten = <b>Y-Daten</b>.</li>"
+            "  <li> Somit ist es möglich, <b> mehrere Y-Datenreihen </b> gleichzeitig zu laden und zu bearbeiten.</li>"
             "  <li>Optional eine Kopfzeile mit Text (Einheiten/Namen), diese werden automatisch erkannt.</li>"
             "  <li>Keine leeren Zellen mitten in den Datenreihen.</li>"
             "  <li>Abgesehen von den Spalten und ihren Namen muss die Datei leer sein</li>"
             "</ul>"
         )
+
+        html_text_english = (
+            "To ensure your data is read without errors, please follow this (exemplary) format:<br><br>"
+            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
+            "  <tr style='background-color: #e0e0e0; font-weight: bold;'>"
+            "    <td>Time t / s</td><td>T1 / °C</td><td>T2 / °C</td><td>P / W</td>"
+            "  </tr>"
+            "  <tr><td>0.0</td><td>10.2</td><td>20.5</td><td>5.1</td></tr>"
+            "  <tr><td>1.0</td><td>12.4</td><td>22.1</td><td>5.8</td></tr>"
+            "  <tr><td>2.0</td><td>76.0</td><td>24.8</td><td>6.4</td></tr>"
+            "</table><br>"
+            "<b>Important Rules:</b>"
+            "<ul style='margin-top: 4px; padding-left: 20px;'>"
+            "  <li>First column = <b>X data</b>, all subsequent columns = <b>Y data</b>.</li>"
+            "  <li>This allows <b>multiple Y datasets</b> to be loaded and processed simultaneously.</li>"
+            "  <li>Optional header row with text (units/names); these will be recognized automatically.</li>"
+            "  <li>No empty cells within the data series.</li>"
+            "  <li>Apart from the columns and their headers, the sheet must be empty.</li>"
+            "</ul>"
+        )
         
-        msgBox.setInformativeText(html_text)
+        msgBox.setInformativeText(html_text_deutsch if self.aktuelle_sprache == "de" else html_text_english )
         msgBox.exec()
 
         dateiname, _ = QFileDialog.getOpenFileName(
@@ -1165,8 +1205,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 txt += f" ± {err_txt}"
             return txt
 
-    def berechne_groesstfehler(self, formel_text, werte_dict, unsicherheiten_dict):
+    def berechne_groesstfehler(self, formel_text, werte_dict, unsicherheiten_dict, digit_unsicherheiten_dict, raw_texte_dict = None):
         formel_sauber = formel_text.replace("^", "**") #Latex hochschreibweise integrierens
+
         #Neu: Ableitungen berechnen
 
         if "diff(" in formel_sauber and self.x_data is not None and "y" in werte_dict:
@@ -1177,12 +1218,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             formel_sauber = re.sub(r"diff\s*\(\s*y\s*(,\s*x\s*)?\)", "_dydx", formel_sauber)
             werte_dict["_dydx"] = dy_dx
             unsicherheiten_dict["_dydx"] = 0.0  # Ableitung selbst hat vorerst 0 Fehler
-
-
-
-
-
-
 
 
 
@@ -1211,9 +1246,38 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             #Betrag der Ableitung an der stelle auswerten
             abl_wert = np.abs(df_num(*args_werte)) #Jetzt werden die Messwerte eingesetzt, * entpackt eine Liste
             u_var = unsicherheiten_dict[var_name]
-            #Aufsummieren
+            val_var = werte_dict[var_name]
 
-            gesamt_fehler+= abl_wert * u_var
+            #Digit schrittweise ermitteln
+            digits_count = digit_unsicherheiten_dict.get(var_name, 0.0) #Standard-Rückfallwert 0.0
+            # Digit-Schrittweite ermitteln
+            if digits_count != 0.0:
+                s_eingabe = raw_texte_dict.get(var_name, "").strip().replace(",", ".")
+# Wenn der Nutzer z. B. "40.0" oder "1.25" getippt hat:
+                if s_eingabe and s_eingabe.lower() not in ["x", "y"]:
+                    if "." in s_eingabe:
+                      stellen = len(s_eingabe.split(".")[1])
+                      digit_step = 10.0 ** (-stellen)
+                    else:
+                      digit_step = 1.0
+                else:
+                  # Für x/y: Schrittweite aus der eingegebenen Unsicherheit Δx bzw. Δy ableiten
+                    s_u = f"{u_var:.8f}".rstrip("0")
+                    if "." in s_u and len(s_u.split(".")[1]) > 0:
+                        stellen = len(s_u.split(".")[1])
+                        digit_step = 10.0 ** (-stellen)
+                    else:
+                        digit_step = 0.01
+
+                digit_err = digit_step * digits_count
+            else:
+               digit_err = 0.0
+
+            #Digits Unsicherheit dazurechnen zum Fehler
+            u_gesamt = u_var + digit_err
+
+            #Aufsummieren
+            gesamt_fehler+= abl_wert * u_gesamt
 
         # FIX: Wenn der Funktionswert ein Array ist (z.B. x_data), aber der Fehler eine Zahl (z.B. 0.2),
         # bringe den Fehler auf dieselbe Array-Form!
@@ -1246,12 +1310,12 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
             # 2. Öffnen und auf den Klick auf OK warten
             if dialog.exec() == QDialog.DialogCode.Accepted:
-                formel, werte, unsicherheiten = dialog.get_daten()
+                formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte = dialog.get_daten()
                 if not formel:
                     return
 
                 # Größtfehler berechnen
-                f_neu, f_err = self.berechne_groesstfehler(formel, werte, unsicherheiten)
+                f_neu, f_err = self.berechne_groesstfehler(formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte)
 
                 # Prüfen, welcher Radio-Button im Dialog gewählt wurde
                 if dialog.radio_y.isChecked():
@@ -1371,6 +1435,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.btn_oeffne_mittelwert.setText(t["btn_mittelwert"])
         self.achsenlimit_button.setText(t["btn_autolimits"])
         self.color_button.setText(t["choose_color"])
+        self.btn_reset_data.setText(t["btn_reset"])
 
         # 5. Labels & Placeholdernamen anpassen
         self.label_aktiverDatensatz.setText(f"<b>{t['lbl_active_ds']}</b>")
@@ -1379,6 +1444,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.y_label_input.setPlaceholderText("z.B. Auslenkung x / m" if self.aktuelle_sprache == "de" else "e.g. Displacement x / m")
         self.legende_input.setPlaceholderText("z.B. Messreihe 1" if self.aktuelle_sprache == "de" else "e.g. pendulum data")
         self.color_lbl.setText(t["lbl_color"])
+        self.polyfit_input_label.setPlaceholderText("Label des Fits: z.B. linearer Fit (LaTeX Support)" if self.aktuelle_sprache == "de" else "Fit Label: e.g. linear fit (LaTeX Support)")
+
         #Menubar
         if hasattr(self, "name_menu"):
             self.name_menu.setTitle(t["menubar_app"])
@@ -1386,6 +1453,11 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             self.bearbeiten_menu.setTitle(t["menubar_edit"])
         if hasattr(self, "action_about"):
             self.action_about.setText(t["menu_about"])
+
+        # Plot anpassen
+
+        if hasattr(self, "ax"):
+            self.plot_aktualisieren()
 
     def sprache_wechseln(self, sprache_code):
         self.aktuelle_sprache = sprache_code
@@ -1511,6 +1583,7 @@ class GroesstfehlerDialog(QDialog):
 
         self.inputs_werte = {}
         self.inputs_unsicherheiten = {}
+        self.inputs_digitserr = {}
 
         # 4. Live-Ergebistabelle
         self.lbl_tabelle_title = QLabel()
@@ -1545,6 +1618,7 @@ class GroesstfehlerDialog(QDialog):
         
         self.inputs_werte.clear()
         self.inputs_unsicherheiten.clear()
+        self.inputs_digitserr.clear()
 
         text = self.formel_input.text().strip()
         if not text:
@@ -1571,12 +1645,16 @@ class GroesstfehlerDialog(QDialog):
             ziel_var = "x" if self.radio_x.isChecked() else "y"
 
             for var in variablen:
+
+            #Standardwerte 0 setzen, solange nix eingegeben wurde
                 val_input = QLineEdit()
                 if var.lower() in ["x", "y"]:
                     val_input.setText(var)
                 val_input.setPlaceholderText(t["gf_val_ph"].format(var=var))
 
-                err_input = QLineEdit()
+                err_input = QLineEdit("0") # Mit nullen füllen
+                digiterr_input = QLineEdit("0") 
+
                 
                 # NEU: Prüfe, ob für die jeweilige Variable ein Excel-Import vorliegt!
                 has_excel = getattr(self, "imported_err", None) is not None
@@ -1584,17 +1662,41 @@ class GroesstfehlerDialog(QDialog):
                     err_input.setText("Excel Import" if self.aktuelle_sprache == "en" else "Excel-Import")
                     err_input.setEnabled(False)
                     err_input.setStyleSheet("background-color: #e0e0e0; color: #555555; font-style: italic;")
+
+                    digiterr_input.setText("Excel Import" if self.aktuelle_sprache == "en" else "Excel-Import")
+                    digiterr_input.setEnabled(False)
+                    digiterr_input.setStyleSheet("background-color: #e0e0e0; color: #555555; font-style: italic;")
                 else:
                     err_input.setPlaceholderText(t["gf_err_ph"].format(var=var))
+                    digiterr_input.setPlaceholderText("z.B. 4" if self.aktuelle_sprache == "en" else "e.g. 4")
 
                 val_input.textChanged.connect(self.aktualisiere_tabelle_live)
                 err_input.textChanged.connect(self.aktualisiere_tabelle_live)
+                digiterr_input.textChanged.connect(self.aktualisiere_tabelle_live)
+
+
+
 
                 self.inputs_werte[var] = val_input
                 self.inputs_unsicherheiten[var] = err_input
+                self.inputs_digitserr[var] = digiterr_input
                 
-                self.form_layout.addRow(QLabel(f"<b>{var}:</b>"), val_input)
-                self.form_layout.addRow(QLabel(f"Δ{var}:"), err_input)
+                #Neu
+                self.valueAnderror = QHBoxLayout()
+                self.valueAnderror.addWidget(QLabel(f"<b>{var}:</b>"))
+                self.valueAnderror.addWidget(val_input)
+
+                self.valueAnderror.addWidget(QLabel(f"Δ{var}:"))
+                self.valueAnderror.addWidget( err_input)
+
+                self.valueAnderror.addWidget(QLabel("±X digits:"))
+                self.valueAnderror.addWidget(digiterr_input)
+
+                self.form_layout.addRow(self.valueAnderror)
+
+                #Neu
+                #self.form_layout.addRow(QLabel(f"<b>{var}:</b>"), val_input)
+                #self.form_layout.addRow(QLabel(f"Δ{var}:"), err_input)
             
             self.aktualisiere_tabelle_live()
 
@@ -1606,10 +1708,13 @@ class GroesstfehlerDialog(QDialog):
         """Liest alle Eingabefelder aus und liefert die Dictionaries und die Formel zurück."""
         werte = {}
         unsicherheiten = {}
+        digit_unsicherheiten = {}
+        raw_texte = {}
 
         # 1. WERTE ALESEN (x, y und Konstanten)
         for var, input_widget in self.inputs_werte.items():
             txt = input_widget.text().strip()
+            raw_texte[var] = txt
             var_lower = var.lower()
 
             # Wenn 'x' in der Formel vorkommt und das Feld "x" heißt oder leer ist
@@ -1618,7 +1723,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = self.x_data if self.x_data is not None else 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("^", "**").replace("*10**", "e").replace("*10^", "e")
+                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
                         werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
                     except Exception:
                         werte[var] = self.x_data if self.x_data is not None else 0.0
@@ -1629,7 +1734,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = self.y_data if self.y_data is not None else 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("^", "**").replace("*10**", "e").replace("*10^", "e")
+                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
                         werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
                     except Exception:
                         werte[var] = self.y_data if self.y_data is not None else 0.0
@@ -1640,7 +1745,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("^", "**").replace("*10**", "e").replace("*10^", "e")
+                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
                         werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
                     except Exception:
                         werte[var] = 0.0
@@ -1648,9 +1753,20 @@ class GroesstfehlerDialog(QDialog):
         # 2. UNSICHERHEITEN AUSLESEN (Δx, Δy und ΔKonstanten)
         ziel_var = "x" if self.radio_x.isChecked() else "y"
 
+        #Digit Unsicherheiten
+
+        for var, input_widget in self.inputs_digitserr.items():
+            txt_digit = input_widget.text().strip()
+            if not txt_digit:
+                digit_unsicherheiten[var] = 0.0
+            else:
+                try: 
+                    digit_unsicherheiten[var] = float(txt_digit.replace(",", "."))
+                except Exception:
+                    digit_unsicherheiten[var] = 0.0
+
         for var, input_widget in self.inputs_unsicherheiten.items():
             var_lower = var.lower()
-
             # Wenn ein Excel-Array geladen wurde und wir die passende Variable prüfen:
             if var_lower == ziel_var and getattr(self, "imported_err", None) is not None:
                 unsicherheiten[var] = self.imported_err
@@ -1660,17 +1776,18 @@ class GroesstfehlerDialog(QDialog):
                 txt = input_widget.text().strip()
                 if not txt or txt in ["Excel-Import", "Excel Import"]:
                     unsicherheiten[var] = 0.0
+    
                 else:
                     try:
-                        txt_sauber = txt.replace("^", "**").replace("*10**", "e").replace("*10^", "e")
+                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
                         unsicherheiten[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
                     except Exception:
                         unsicherheiten[var] = 0.0
 
-        return self.formel_input.text().strip(), werte, unsicherheiten
+        return self.formel_input.text().strip(), werte, unsicherheiten, digit_unsicherheiten, raw_texte
    
     def aktualisiere_tabelle_live(self):
-            formel, werte, unsicherheiten = self.get_daten()
+            formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte = self.get_daten()
             if not formel:
                 return
 
@@ -1678,7 +1795,7 @@ class GroesstfehlerDialog(QDialog):
                 if self.rechen_funktion is None:
                     return
                 
-                f_val, f_err = self.rechen_funktion(formel, werte, unsicherheiten)
+                f_val, f_err = self.rechen_funktion(formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte)
 
                 # Sicherstellen, dass f_val und f_err Arrays sind
                 if isinstance(f_val, (int, float, np.number)):
@@ -1921,7 +2038,7 @@ class GroesstfehlerDialog(QDialog):
         msgBox = QMessageBox(self)
         msgBox.setIcon(QMessageBox.Icon.Information)
         msgBox.setWindowTitle("Format-Hinweis" if not is_en else "Format Notice")
-        msgBox.setText("<b>Struktur für den Unsicherheiten-Import</b>" if not is_en else "<b>Structure for Uncertainty Import</b>")
+        msgBox.setText("<b>Struktur für den Daten-Import</b>" if not is_en else "<b>Structure for Data Import</b>")
         
         html_text = (
             "Bitte wähle eine Excel-Datei mit <b>genau EINER Spalte</b> aus, die Daten enthält:<br><br>"
@@ -1999,7 +2116,7 @@ class MittelwertDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Mittelwert-Rechner")
         self.aktuelle_sprache = sprache
-        self.resize(600, 500)
+        self.resize(675, 550)
 
         #Hauptlayout
 
@@ -2029,7 +2146,8 @@ class MittelwertDialog(QDialog):
         self.layout.addLayout(layout_btn_excel)
 
         # 3. Live-Mittelwertabelle
-        self.layout.addWidget(QLabel("<b>Daten/Ergebnistabelle:</b>"))
+        self.lbl_dataAndresult = QLabel()
+        self.layout.addWidget(self.lbl_dataAndresult)
         self.tabelle = QTableWidget()
         self.layout.addWidget(self.tabelle)
 
@@ -2053,7 +2171,7 @@ class MittelwertDialog(QDialog):
     def get_infotext_html(self):
         if self.aktuelle_sprache == "de":
             return("Damit die Daten fehlerfrei eingelesen werden, beachte bitte folgendes (beispielhaftes) Format:<br><br>"
-            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; font-family: sans-serif; text-align: center;'>"
+            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
             "  <tr style='background-color: #e0e0e0; font-weight: bold;'>"
             "    <td>Mittelwertspalte 1</td><td>Spalte 2(optional) </td><td>Spalte 3 (optional) </td><td>Spalte n</td>"
             "  </tr>"
@@ -2076,7 +2194,7 @@ class MittelwertDialog(QDialog):
         else:
             return(
             "To ensure your data is read correctly, please follow this (exemplary) format:<br><br>"
-            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; font-family: sans-serif; text-align: center;'>"
+            "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
             "  <tr style='background-color: #e0e0e0; font-weight: bold;'>"
             "    <td>Mean Column 1</td><td>Column 2 (optional)</td><td>Column 3 (optional)</td><td>Column n</td>"
             "  </tr>"
@@ -2134,7 +2252,7 @@ class MittelwertDialog(QDialog):
         msgBox = QMessageBox(self)
         msgBox.setIcon(QMessageBox.Icon.Information)
         msgBox.setWindowTitle("Hinweis zum Excel-Format für Mittelwerte")
-        msgBox.setText("<b>Optimale Struktur für den Datei-Import</b>")
+        msgBox.setText("<b>Optimale Struktur für den Datei-Import</b>" if self.aktuelle_sprache == "de" else "<b>Optimized layout for data import</b>")
         
         # HTML-Tabelle mit Anschauungsbeispiel bauen
         msgBox.setInformativeText(self.get_infotext_html())
@@ -2166,7 +2284,8 @@ class MittelwertDialog(QDialog):
                         break
                 # Spaltenname und Daten trennen
                 if numerisch:
-                    spalten_namen = [f"Messreihe {i+1}" for i in range(self.raw_df.shape[1])]
+                    Messreihe_lang = "Messreihe" if self.aktuelle_sprache == "de" else "Series"
+                    spalten_namen = [f"{Messreihe_lang} {i+1}" for i in range(self.raw_df.shape[1])]
                     datafile = self.raw_df.copy()
                 else:
                     spalten_namen = [str(val) for val in self.raw_df.iloc[0, :]]
@@ -2286,8 +2405,8 @@ class MittelwertDialog(QDialog):
     def erstelle_leere_start_tabelle(self, spalten=6, zeilen=10):
         """Erstellt zu Beginn eine leere Tabelle mit Standard-Eingabefeldern."""
         self.tabelle.blockSignals(True)  # Signale stoppen, um Schleifen zu verhindern
-        
-        spalten_namen = [f"Messreihe {i+1}" for i in range(spalten)]
+        Messreihe_lang = "Messreihe" if self.aktuelle_sprache == "de" else "Series"
+        spalten_namen = [f"{Messreihe_lang} {i+1}" for i in range(spalten)]
         self.mittelwertspalten_dict = {s_name: np.array([]) for s_name in spalten_namen}
 
         self.tabelle.setRowCount(zeilen + 1)  # +1 Zeile für das Ergebnis
@@ -2337,9 +2456,10 @@ class MittelwertDialog(QDialog):
 
     def save_excel(self):
         # 1. Ergebnisse abrufen
-        ergebnisse = self.calculate_mean()
+        ergebnisse = self.calculate_mean() 
+        Warning_text = ("Es sind keine Messdaten zum Exportieren vorhanden" if self.aktuelle_sprache == "de" else "No data for export available")
         if not ergebnisse:
-            QMessageBox.warning(self, "Keine Daten", "Es sind keine Messdaten zum Exportieren vorhanden.")
+            QMessageBox.warning(self, "Keine Daten", Warning_text)
             return
 
         # 2. Daten für den DataFrame vorbereiten (auf 4 Dezimalstellen gerundet)
@@ -2395,6 +2515,7 @@ class MittelwertDialog(QDialog):
 
         self.btn_excel_laden.setText(t["Mittelwert_open"])
         self.btn_excel_save.setText(t["Mittelwert_save"])
+        self.lbl_dataAndresult.setText(f"<b>{t["mean_preview_table"]}</b>")
         
 
 
