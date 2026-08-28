@@ -1233,6 +1233,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
     def model_saettigung(x, A, B):
         return A * (1 - np.exp(-B * x))
 
+    
     def format_html_zahl(self, val, err=None):
             """Formatiert eine Zahl (und optional ihren Fehler) sauber für HTML mit x10^n."""
             def single_fmt(x):
@@ -1865,8 +1866,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = self.x_data if self.x_data is not None else 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
-                        werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
+                        werte[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
                     except Exception:
                         werte[var] = self.x_data if self.x_data is not None else 0.0
 
@@ -1876,8 +1876,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = self.y_data if self.y_data is not None else 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
-                        werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
+                        werte[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
                     except Exception:
                         werte[var] = self.y_data if self.y_data is not None else 0.0
 
@@ -1887,8 +1886,7 @@ class GroesstfehlerDialog(QDialog):
                     werte[var] = 0.0
                 else:
                     try:
-                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
-                        werte[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
+                        werte[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
                     except Exception:
                         werte[var] = 0.0
 
@@ -1921,8 +1919,7 @@ class GroesstfehlerDialog(QDialog):
     
                 else:
                     try:
-                        txt_sauber = txt.replace("," , ".").replace("^", "**").replace("*10**", "e").replace("*10^", "e")
-                        unsicherheiten[var] = float(eval(txt_sauber)) if ("^" in txt or "*" in txt) else float(txt_sauber)
+                        unsicherheiten[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
                     except Exception:
                         unsicherheiten[var] = 0.0
 
@@ -2250,6 +2247,18 @@ class GroesstfehlerDialog(QDialog):
 
             except Exception as e:
                 QMessageBox.critical(self, "Fehler", f"Details: {str(e)}")
+
+    @staticmethod
+    def parse_zahl_eingabe(txt):
+        """Wandelt Ausdrücke wie '201.44*10^-6' oder '1.5*10**3' sauber in float um."""
+        s = txt.strip().replace(",", ".")
+        # Wandelt z. B. '*10^-6' oder '*10**-6' direkt in 'e-6' um:
+        s = re.sub(r"\*10\^([+-]?\d+)", r"e\1", s)
+        s = re.sub(r"\*10\*\*([+-]?\d+)", r"e\1", s)
+        # Potenzzeichen für verbleibende Rechnungen korrigieren
+        s = s.replace("^", "**")
+        return float(eval(s))
+
 
 
 class MittelwertDialog(QDialog):
@@ -2657,7 +2666,7 @@ class MittelwertDialog(QDialog):
 
         self.btn_excel_laden.setText(t["Mittelwert_open"])
         self.btn_excel_save.setText(t["Mittelwert_save"])
-        self.lbl_dataAndresult.setText(f"<b>{t["mean_preview_table"]}</b>")
+        self.lbl_dataAndresult.setText(f"<b>{t['mean_preview_table']}</b>")
         
 
 
