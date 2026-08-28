@@ -25,6 +25,7 @@ from PySide6.QtGui import QFont, QColor, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QRadioButton, QTableWidget, QTableWidgetItem, QWidget, QDialog, QFormLayout, QDialogButtonBox, QSlider, QCheckBox, QStyledItemDelegate, QTabWidget, QComboBox, QColorDialog,  QDoubleSpinBox, QMessageBox, QPushButton, QFileDialog, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel  # H = Horizontal,  V = Vertikal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from scipy.signal import find_peaks
 
 
 
@@ -55,7 +56,7 @@ TRANSLATIONS = {
         "data_label": "Datenlabel (LaTeX Support):",
         "y_data_combo": "Keine Daten geladen",
         "lbl_mathematicaloperation": "Mathematische Operationen und Tools:",
-        "lbl_achsenmanipulation": "Achsen Maßstab",
+        "lbl_achsenmanipulation": "Achsen Maßstab:",
         # --- Größtfehler-Dialog (DE) ---
         "gf_title": "Datenauswertung & Größtfehlerrechner",
         "gf_target": "Ziel der Berechnung:",
@@ -79,7 +80,8 @@ TRANSLATIONS = {
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "Ein Werkzeug zur schnellen Datenauswertung, Plot-Erstellung und Größtfehlerberechnung "
             "für physikalische Praktika und wissenschaftliche Berichte, entwickelt von J.B. aus Langeweile in den Sommerferien :D .<br><br>"
-            "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, Pandas, Numpy, Matplotlib &amp; SymPy.</i>"),
+            "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, Pandas, Numpy, Matplotlib &amp; SymPy.</i> <br><br>"
+            "Verbesserungssvorschläge, Programmfehler etc. bitte per Mail an <i> jakob.breinl@edu.uni-graz.at </i>"),
         "Mittelwert_title": "Mittelwert-Rechner",
         "Mittelwert_header": "Mittelwert & Standardabweichung berechnen",
         "Mittelwert_open": "Excel für Mittelwerte laden",
@@ -90,8 +92,9 @@ TRANSLATIONS = {
         "initial_title": "noch keine Daten geladen",
         "default_x_axis": "X-Achse",
         "default_y_axis": "Y-Achse",
-        "btn_reset": "Originialdaten wiederherstellen",
-        "mean_preview_table": "Daten/Ergebnistabelle"
+        "btn_reset": "Originaldaten wiederherstellen",
+        "mean_preview_table": "Daten/Ergebnistabelle",
+        "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:"
 
     },
     "en": {
@@ -117,7 +120,7 @@ TRANSLATIONS = {
         "data_label": "Set Datalabel (LaTeX Support):",
         "y_data_combo": "No data available",
         "lbl_mathematicaloperation": "Data Analysis",
-        "lbl_achsenmanipulation": "Axis Scaling",
+        "lbl_achsenmanipulation": "Axis Scaling:",
         # --- Größtfehler-Dialog (EN) ---
         "gf_title": "Data Evaluation & Error Calculator",
         "gf_target": "Target of Calculation:",
@@ -139,9 +142,11 @@ TRANSLATIONS = {
         "about_text": (
             "<h2>Protokollix</h2>"
             "<b>© 2026 Jakob Breinl</b><br><br>"
-            "A tool for fast data evaluation, plotting, and error propagation analysis "
-            "for physics lab courses and scientific reports.<br><br>"
-            "<i>Developed with Python, Numpy, Pandas, PySide6, Matplotlib &amp; SymPy.</i>"),
+            "A tool for fast data evaluation, plotting, and maximum error calculation "
+            "for physics lab courses and scientific reports, developed by J.B. out of boredom during summer break :D .<br><br>"
+            "<i>Developed with Python using the PySide6, Pandas, NumPy, Matplotlib &amp; SymPy libraries.</i> <br><br>"
+            "Suggestions for improvement, bug reports, etc. please via email to <i>jakob.breinl@edu.uni-graz.at</i>"
+        ),
         "Mittelwert_title": "mean calculator",
         "Mittelwert_header": "Calculate Mean & Mean Error",
         "Mittelwert_open": "Open Excel",
@@ -152,7 +157,8 @@ TRANSLATIONS = {
         "default_x_axis": "X-Axis",
         "default_y_axis": "Y-Axis",
         "btn_reset": "Reset Data",
-        "mean_preview_table": "Data Table & Results:"
+        "mean_preview_table": "Data Table & Results:",
+        "lbl_limitkommastellen": "Number of Decimal Points for the Limits:"
         
     }
 }
@@ -338,6 +344,20 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         y_limits_layout.addWidget(self.y_max_input)
 
         layout_tab_label.addLayout(y_limits_layout)# 4. Das Unter-Layout (addLayout!) ins Haupt-Bedienfeld einfügen
+
+
+        #Regler für die Nachkommestellen der Achsenlimits
+        self.lbl_limitskommastellen = QLabel()
+        layout_tab_label.addWidget(self.lbl_limitskommastellen)
+        self.limitskommastellen_slider = QSlider(Qt.Orientation.Horizontal)
+
+        self.limitskommastellen_slider.setRange(0,10) # Range
+        self.limitskommastellen_slider.setValue(2) # Startwert
+
+        self.limitskommastellen_slider.setSingleStep(1) #1er Schritte als Skalierung
+        layout_tab_label.addWidget(self.limitskommastellen_slider)
+
+        self.update_limitkommastellen()
         #--------------------------------------------------------------------------------------
 
         # Button zum automatischen Anpassen der Axen anlegen
@@ -431,8 +451,21 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.polyfit_combo.setCurrentIndex(0)
         trafo_tab_layout.addWidget(self.logaxis_combo)
         
+    #Checkbox für "zeige Maxima" #showmaxima_checkbox
 
-    #Checkbox für Semilogx Acis
+        self.maxmin_label = QLabel("Maxima / Minima:")
+        trafo_tab_layout.addWidget(self.maxmin_label)
+
+        self.showmaxmin_combo = QComboBox()
+        self.showmaxmin_combo.addItem("Verstecke lokale Minima/Maxima", "dontshow")
+        self.showmaxmin_combo.addItem("Zeige lokale Maxima", "locmax")
+        self.showmaxmin_combo.addItem("Zeige lokale Minima", "locmin")
+        self.showmaxmin_combo.setCurrentIndex(0)
+        trafo_tab_layout.addWidget(self.showmaxmin_combo)
+
+        self.save_maxmin = QPushButton("Speichere Maxima / Minima als Excel")
+        self.save_maxmin.setEnabled(False)
+        trafo_tab_layout.addWidget(self.save_maxmin)
 
           
         trafo_tab_layout.addStretch()
@@ -616,7 +649,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.grid_checkbox.toggled,
         self.polyfit_input_label.textChanged,
         self.logaxis_combo.currentTextChanged,
-        self.markersize_spinbox.valueChanged
+        self.markersize_spinbox.valueChanged,
+        self.showmaxmin_combo.currentTextChanged
         ):
             signal.connect(self.plot_aktualisieren)
 
@@ -626,6 +660,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.color_button.clicked.connect(self.choose_color)
         self.save_button.clicked.connect(self.save_plot)
         self.aktive_y_combo.currentTextChanged.connect(self.spalte_gewechselt)
+        self.limitskommastellen_slider.valueChanged.connect(self.update_limitkommastellen)
+        self.save_maxmin.clicked.connect(self.save_maxmin_excel)
 
     def plot_aktualisieren(self):
 
@@ -857,6 +893,19 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             if handles:
                 self.ax.legend(fontsize=fontsize * 0.75)
 
+
+        # Maxima / Minima holen & Box sperren/freischalten
+        maxmin_xval, maxmin_yval = self.calculate_locmaxmin()
+        self.showmaxmin_combo.setEnabled(maxmin_xval.size > 0)
+        self.save_maxmin.setEnabled(maxmin_xval.size > 0)
+
+        # Nur zeichnen, wenn nicht ausgeblendet
+        if self.showmaxmin_combo.currentData() in ("locmax", "locmin"):
+            self.ax.plot(maxmin_xval, maxmin_yval, c="red", markersize=10, marker="+", linestyle="")
+
+
+
+
         self.canvas.draw_idle()
 
     def choose_color(self):
@@ -1062,7 +1111,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     self.legende_input.blockSignals(True)
                     self.legende_input.setText(erste_spalte)
                     self.legende_input.blockSignals(False)
-
                 # Jetzt EINMAL sauber den Plot neu zeichnen
                 self.plot_aktualisieren()
 
@@ -1445,6 +1493,13 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.legende_input.setPlaceholderText("z.B. Messreihe 1" if self.aktuelle_sprache == "de" else "e.g. pendulum data")
         self.color_lbl.setText(t["lbl_color"])
         self.polyfit_input_label.setPlaceholderText("Label des Fits: z.B. linearer Fit (LaTeX Support)" if self.aktuelle_sprache == "de" else "Fit Label: e.g. linear fit (LaTeX Support)")
+        self.showmaxmin_combo.setItemText(0, "Verstecke lokale Minima/Maxima" if self.aktuelle_sprache == "de" else "Hide local Max/Min")
+        self.showmaxmin_combo.setItemText(1, "Zeige lokale Maxima" if self.aktuelle_sprache == "de" else "Show Local Maxima")
+        self.showmaxmin_combo.setItemText(2, "Zeige lokale Minima" if self.aktuelle_sprache == "de" else "Show Local Minima")
+        self.lbl_limitskommastellen.setText(t["lbl_limitkommastellen"])
+        
+        
+
 
         #Menubar
         if hasattr(self, "name_menu"):
@@ -1474,8 +1529,95 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         except Exception as e:
             print(f"About Tab wurde unerwartet abgebrochen: {e}")
 
+    def calculate_locmaxmin(self):
+        # 1. Sicherung gegen None-Absturz beim Start
+        if self.x_data is None or not self.y_dict:
+            return np.array([]), np.array([])
 
+        aktive_spalte = self.aktive_y_combo.currentText()
 
+        if aktive_spalte in self.y_dict:
+            x_daten = self.x_data
+            y_daten = self.y_dict[aktive_spalte]  # Daten holen
+            
+            # Wenn Minima gewählt sind -> Minima berechnen
+            if self.showmaxmin_combo.currentData() == "locmin":
+                if len(x_daten) == len(y_daten):
+                    y_daten_reverse = -y_daten
+                    peaks_idx, _ = find_peaks(y_daten_reverse)
+                    x_val_peaks = x_daten[peaks_idx]
+                    y_val_peaks = y_daten[peaks_idx] 
+                    print(x_val_peaks, y_val_peaks)
+                    return (x_val_peaks, y_val_peaks)
+            
+            # Ansonsten (bei "locmax" oder zur Peak-Prüfung bei "dontshow") -> Maxima berechnen
+            else:
+                if len(x_daten) == len(y_daten):
+                    peaks_idx, _ = find_peaks(y_daten)
+                    x_val_peaks = x_daten[peaks_idx]
+                    y_val_peaks = y_daten[peaks_idx]
+                    print(x_val_peaks, y_val_peaks)
+                    return (x_val_peaks, y_val_peaks)
+
+        return np.array([]), np.array([])
+                        
+    def update_limitkommastellen(self):
+        decimals = self.limitskommastellen_slider.value()
+        self.y_max_input.setDecimals(decimals)
+        self.y_min_input.setDecimals(decimals)
+        self.x_max_input.setDecimals(decimals)
+        self.x_min_input.setDecimals(decimals)
+
+    def save_maxmin_excel(self):
+        if self.x_data is None or not self.y_dict:
+            return
+
+        aktive_spalte = self.aktive_y_combo.currentText()
+        if aktive_spalte not in self.y_dict:
+            return
+
+        x_daten = self.x_data
+        y_daten = self.y_dict[aktive_spalte]
+
+        # 1. Maxima & Minima getrennt berechnen
+        max_idx, _ = find_peaks(y_daten)
+        min_idx, _ = find_peaks(-y_daten)
+
+        # 2. DataFrame mit pd.Series aufbauen (gleicht unterschiedliche Längen automatisch mit NaN aus)
+        daten = {
+            "Minima (x)": pd.Series(x_daten[min_idx]),
+            "Minima (y)": pd.Series(y_daten[min_idx]),
+            "Maxima (x)": pd.Series(x_daten[max_idx]),
+            "Maxima (y)": pd.Series(y_daten[max_idx])
+        }
+        df = pd.DataFrame(daten)
+
+        # 3. Datei-Speicherdialog öffnen
+        dateiname, _ = QFileDialog.getSaveFileName(
+            self,
+            "Maxima & Minima speichern",
+            f"extrema_{aktive_spalte}.xlsx",
+            "Excel-Arbeitsmappe (*.xlsx);;CSV-Datei (*.csv)"
+        )
+
+        if dateiname:
+            try:
+                if dateiname.endswith(".csv"):
+                    df.to_csv(dateiname, index=False, sep=";", float_format="%.4f")
+                else:
+                    df.to_excel(dateiname, index=False, float_format="%.4f")
+
+                QMessageBox.information(
+                    self, 
+                    "Erfolg", 
+                    f"Die Extrema wurden erfolgreich gespeichert unter:\n{dateiname}"
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    self, 
+                    "Fehler beim Speichern", 
+                    f"Die Datei konnte nicht gespeichert werden:\n\n{str(e)}"
+                )
 
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
@@ -2524,4 +2666,5 @@ if __name__ == "__main__": # Alles unter der if Abfrage wird nur dann ausgefsüh
     app = QApplication(sys.argv)
     fenster = MeinPlotterApp() # Hier wird unser Bauplan angewendet.
     fenster.show()
+    QApplication.instance().styleHints().setColorScheme(Qt.ColorScheme.Light)
     sys.exit(app.exec()) # App exec ist eine Endlosschleife, wenn ich das Programm schließe gibt es 0 zurück, wenn es abstürzt 1 
