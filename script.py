@@ -94,7 +94,8 @@ TRANSLATIONS = {
         "default_y_axis": "Y-Achse",
         "btn_reset": "Originaldaten wiederherstellen",
         "mean_preview_table": "Daten/Ergebnistabelle",
-        "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:"
+        "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
+        "btn_save_data": "Daten speichern"
 
     },
     "en": {
@@ -158,7 +159,8 @@ TRANSLATIONS = {
         "default_y_axis": "Y-Axis",
         "btn_reset": "Reset Data",
         "mean_preview_table": "Data Table & Results:",
-        "lbl_limitkommastellen": "Number of Decimal Points for the Limits:"
+        "lbl_limitkommastellen": "Number of Decimal Points for the Limits:",
+        "btn_save_data": "Save Data"
         
     }
 }
@@ -1715,6 +1717,10 @@ class GroesstfehlerDialog(QDialog):
         self.open_data_layout = QHBoxLayout()
         self.btn_import_data = QPushButton("Daten laden")
         self.open_data_layout.addWidget(self.btn_import_data)
+
+        self.btn_save_data = QPushButton("Daten speichern")
+        self.open_data_layout.addWidget(self.btn_save_data)
+
         self.layout.addLayout(self.open_data_layout)
 
 
@@ -1727,6 +1733,11 @@ class GroesstfehlerDialog(QDialog):
         self.inputs_werte = {}
         self.inputs_unsicherheiten = {}
         self.inputs_digitserr = {}
+
+        # NEU: Dauerhafter Speicher für getippte Werte
+        self.gespeicherte_werte = {}
+        self.gespeicherte_unsicherheiten = {}
+        self.gespeicherte_digits = {}
 
         # 4. Live-Ergebistabelle
         self.lbl_tabelle_title = QLabel()
@@ -1747,6 +1758,14 @@ class GroesstfehlerDialog(QDialog):
         self.radio_x.toggled.connect(self.aktualisiere_button_status)
         self.radio_nur_ausgabe.toggled.connect(self.aktualisiere_button_status)
         self.btn_import_data.clicked.connect(self.importiere_singledatacolumns)
+        self.btn_save_data.clicked.connect(self.save_data)
+
+        # Prüfen, ob überhaupt Plot-Daten vorliegen:
+        keine_daten = (self.x_data is None) and (self.y_data is None)
+        if keine_daten:
+            self.radio_nur_ausgabe.setChecked(True)
+            self.radio_y.setEnabled(False)
+            self.radio_x.setEnabled(False)
 
         # Einmaligen Start-Zustand setzen (da Y standardmäßig aktiv ist, wird er initial ausgegraut)
         self.aktualisiere_button_status()
@@ -1755,13 +1774,16 @@ class GroesstfehlerDialog(QDialog):
         self.retranslate_ui()
     
     def aktualisiere_variablen_felder(self):
-        #Altes Formular leeren (alle Zeilen löschen)
-        while self.form_layout.rowCount() > 0:
-            self.form_layout.removeRow(0)
-        
-        self.inputs_werte.clear()
-        self.inputs_unsicherheiten.clear()
-        self.inputs_digitserr.clear()
+
+        #Sind Werte vorhanden? Wenn ja, speichern!
+        for var, widget in self.inputs_werte.items():
+            self.gespeicherte_werte[var] = widget.text()
+        for var, widget in self.inputs_unsicherheiten.items():
+            self.gespeicherte_unsicherheiten[var] = widget.text()
+        for var, widget in self.inputs_digitserr.items():
+            self.gespeicherte_digits[var] = widget.text()
+
+
 
         text = self.formel_input.text().strip()
         if not text:
@@ -1780,6 +1802,14 @@ class GroesstfehlerDialog(QDialog):
             expr = sp.parse_expr(formel_fuer_parsing, transformations=standard_transformations + (implicit_multiplication_application,))
             variablen = sorted([s.name for s in expr.free_symbols if s.name not in ["pi", "_dydx"]])
 
+                    #Altes Formular leeren (alle Zeilen löschen)
+            while self.form_layout.rowCount() > 0:
+                self.form_layout.removeRow(0)
+        
+            self.inputs_werte.clear()
+            self.inputs_unsicherheiten.clear()
+            self.inputs_digitserr.clear()
+
             # Für jede Variable Eingabefelder im Formlayout anlegen
 
             t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
@@ -1788,16 +1818,21 @@ class GroesstfehlerDialog(QDialog):
             ziel_var = "x" if self.radio_x.isChecked() else "y"
 
             for var in variablen:
-
             #Standardwerte 0 setzen, solange nix eingegeben wurde
-                val_input = QLineEdit()
-                if var.lower() in ["x", "y"]:
-                    val_input.setText(var)
+                if var in self.gespeicherte_werte and self.gespeicherte_werte[var] != "":
+                    val_text = self.gespeicherte_werte[var]
+                else: 
+                    val_text = var if var.lower() in ["x", "y"] else ""
+
+                val_input = QLineEdit(val_text)
                 val_input.setPlaceholderText(t["gf_val_ph"].format(var=var))
 
-                err_input = QLineEdit("0") # Mit nullen füllen
-                digiterr_input = QLineEdit("0") 
-
+            #Unsicherheiten mit vorher eingegeben Werten befüllen
+                err_text = self.gespeicherte_unsicherheiten.get(var, "0")
+                digit_text = self.gespeicherte_digits.get(var, "0")
+                err_input = QLineEdit(err_text)
+                digiterr_input = QLineEdit(digit_text)
+                
                 
                 # NEU: Prüfe, ob für die jeweilige Variable ein Excel-Import vorliegt!
                 has_excel = getattr(self, "imported_err", None) is not None
@@ -2048,6 +2083,7 @@ class GroesstfehlerDialog(QDialog):
         self.btn_import_excel.setText(t["gf_btn_excel"])
         self.lbl_tabelle_title.setText(f"<b>{t['gf_preview_table']}</b>")
         self.btn_import_data.setText(t["btn_loadsinglecolumn"]) 
+        self.btn_save_data.setText(t["btn_save_data"])
 
     def get_hilfetext(self):
         if self.aktuelle_sprache == "en":
@@ -2259,6 +2295,73 @@ class GroesstfehlerDialog(QDialog):
         s = s.replace("^", "**")
         return float(eval(s))
 
+    def save_data(self):
+        formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte = self.get_daten()
+        if not formel: 
+            Warning_text = ("Es sind keine Daten zum Exportieren vorhanden" if self.aktuelle_sprache == "de" else "No data for export available")
+            QMessageBox.warning(self, "Keine Daten", Warning_text)
+            return 
+        try:
+            if self.rechen_funktion is None:
+                QMessageBox.warning(self, "Keine Daten", "An Error occured")
+                return
+            f_val, f_err = self.rechen_funktion(formel, werte, unsicherheiten, digit_unsicherheiten, raw_texte)
+            if isinstance(f_val, (int, float, np.number)):
+                f_val = np.array([f_val])
+                f_err = np.array([f_err])
+
+            #Abfragen, um was für daten es sich überhaupt handelt
+            if self.radio_y.isChecked():
+                y_exportData = f_val
+                y_exportError = f_err
+                x_exportData = self.x_data
+                df = pd.DataFrame({"X-Values": x_exportData,"Y-Values": y_exportData, "Y-Errors": y_exportError})
+
+            if self.radio_x.isChecked():
+                x_exportData = f_val
+                x_exportError = f_err
+                y_exportData = self.y_data
+                df = pd.DataFrame({"X-Values": x_exportData,"X-errors": x_exportError, "Y-Data": y_exportData})
+
+            if self.radio_nur_ausgabe.isChecked():
+                y_exportData = f_val
+                y_exportError = f_err
+                df = pd.DataFrame({"Y-Values": y_exportData,"Y-errors": y_exportError})
+
+                    # 3. Datei-Speicherdialog öffnen
+            dateiname, _ = QFileDialog.getSaveFileName(
+                self,
+                "Daten speichern",
+                "EditedData.xlsx",
+                "Excel-Arbeitsmappe (*.xlsx);;CSV-Datei (*.csv)"
+            )
+
+            # 4. Datei auf die Festplatte schreiben
+            if dateiname:
+                try:
+                    if dateiname.endswith(".csv"):
+                        df.to_csv(dateiname, index=False, sep=";", float_format="%.4f")
+                    else:
+                        df.to_excel(dateiname, index=False, float_format="%.4f")
+
+                    QMessageBox.information(
+                        self,
+                        "Erfolg",
+                        f"Die Daten wurden erfolgreich gespeichert unter:\n{dateiname}"
+                    )
+                except Exception as e:
+                    QMessageBox.critical(
+                        self,
+                        "Fehler beim Speichern",
+                        f"Die Datei konnte nicht gespeichert werden (ist sie eventuell noch in Excel geöffnet?):\n\n{str(e)}"
+                    )
+
+        except Exception as e: 
+            print(f"Fehler beim Abspeichern der Daten: {e}")
+
+
+        
+            
 
 
 class MittelwertDialog(QDialog):
@@ -2396,7 +2499,6 @@ class MittelwertDialog(QDialog):
                 "<b>3. Useful Tips:</b><br>"
                 "• Decimal numbers can be entered using either a comma (<code>,</code>) or a period (<code>.</code>).<br>"
                 "• The blue highlighted result row is write-protected and updates automatically with every change to the cells.")
-
 
     def open_excel(self):
          # 1. Info-Box mit Beispiel-Tabelle anzeigen
