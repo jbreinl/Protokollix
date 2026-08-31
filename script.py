@@ -79,7 +79,7 @@ TRANSLATIONS = {
             "<h2>Protokollix</h2>"
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "Ein Werkzeug zur schnellen Datenauswertung, Plot-Erstellung und Größtfehlerberechnung "
-            "für physikalische Praktika und wissenschaftliche Berichte, entwickelt von J.B. aus Langeweile in den Sommerferien :D .<br><br>"
+            "für physikalische Praktika und wissenschaftliche Berichte, entwickelt aus Langeweile in den Sommerferien :D .<br><br>"
             "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, Pandas, Numpy, Matplotlib &amp; SymPy.</i> <br><br>"
             "Verbesserungssvorschläge, Programmfehler etc. bitte per Mail an <i> jakob.breinl@edu.uni-graz.at </i>"),
         "Mittelwert_title": "Mittelwert-Rechner",
@@ -96,7 +96,8 @@ TRANSLATIONS = {
         "btn_yreset": "Y-Daten zurücksetzen",
         "mean_preview_table": "Daten/Ergebnistabelle",
         "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
-        "btn_save_data": "Daten speichern"
+        "btn_save_data": "Daten speichern",
+        "lbl_legendposition": "Legenden Position:"
 
     },
     "en": {
@@ -145,7 +146,7 @@ TRANSLATIONS = {
             "<h2>Protokollix</h2>"
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "A tool for fast data evaluation, plotting, and maximum error calculation "
-            "for physics lab courses and scientific reports, developed by J.B. out of boredom during summer break :D .<br><br>"
+            "for physics lab courses and scientific reports, developed out of boredom during summer break. .<br><br>"
             "<i>Developed with Python using the PySide6, Pandas, NumPy, Matplotlib &amp; SymPy libraries.</i> <br><br>"
             "Suggestions for improvement, bug reports, etc. please via email to <i>jakob.breinl@edu.uni-graz.at</i>"
         ),
@@ -162,7 +163,8 @@ TRANSLATIONS = {
         "btn_yreset": "Reset Y-Data",
         "mean_preview_table": "Data Table & Results:",
         "lbl_limitkommastellen": "Number of Decimal Points for the Limits:",
-        "btn_save_data": "Save Data"
+        "btn_save_data": "Save Data",
+        "lbl_legendposition": "Legend Position:"
         
     }
 }
@@ -530,9 +532,23 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.update_color_button_style()
         style_tab_layout.addWidget(self.color_button)
 
+        tab_style_widget.setLayout(style_tab_layout)
+
+        #Slider für die Legenden Position
+
+        self.lbl_legendposition = QLabel()
+        style_tab_layout.addWidget(self.lbl_legendposition)
+
+        self.slider_legendposition = QSlider(Qt.Orientation.Horizontal)
+        self.slider_legendposition.setRange(0,10)
+        self.slider_legendposition.setSingleStep(1)
+        self.slider_legendposition.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.slider_legendposition.setTickInterval(1)
+        self.slider_legendposition.setEnabled(False)
+        style_tab_layout.addWidget(self.slider_legendposition)
 
         style_tab_layout.addStretch()
-        tab_style_widget.setLayout(style_tab_layout)
+
 
     #Import/Export
 
@@ -578,10 +594,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         akt_deutsch.triggered.connect(lambda: self.sprache_wechseln("de"))
         akt_englisch.triggered.connect(lambda: self.sprache_wechseln("en"))
-
-
-        
-
 
 #Verknüpfen
 
@@ -653,7 +665,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.polyfit_input_label.textChanged,
         self.logaxis_combo.currentTextChanged,
         self.markersize_spinbox.valueChanged,
-        self.showmaxmin_combo.currentTextChanged
+        self.showmaxmin_combo.currentTextChanged,
+        self.slider_legendposition.valueChanged
         ):
             signal.connect(self.plot_aktualisieren)
 
@@ -668,7 +681,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
     def plot_aktualisieren(self):
 
-    
         #Plotgröße updaten zu beginn
         w = self.figsize_x_input.value() # Bildgröße
         h = self.figsize_y_input.value()
@@ -698,6 +710,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         color = self.plot_color.name()
         fontsize = self.fontsize_slider.value()
         grid_aktiv = self.grid_checkbox.isChecked()  # Gibt True oder False zurück
+        legend_pos = self.slider_legendposition.value()
 
         #Beschriftungen
         # Übersetzungspaket für leere Achsenbeschriftungen holen
@@ -894,7 +907,13 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             # Nur eine Legende zeichnen, wenn Daten geladen sind und mindestens ein Label existiert
             handles, labels = self.ax.get_legend_handles_labels()
             if handles:
-                self.ax.legend(fontsize=fontsize * 0.75)
+                self.ax.legend(fontsize=fontsize * 0.75, loc = legend_pos)
+                #Legenden Position freischalten
+                self.slider_legendposition.setEnabled(True)
+            else: 
+                self.slider_legendposition.setEnabled(False)
+
+            self.lbl_legendposition.setText(self.update_legend_position())
 
 
         # Maxima / Minima holen & Box sperren/freischalten
@@ -1470,6 +1489,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 else f"Data for '{aktive_spalte}' has been reset."
             )
             QMessageBox.information(self, "Reset", msg)
+
     def retranslate_ui(self):
         # 1. Übersetzungspaket holen
         t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
@@ -1525,6 +1545,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.showmaxmin_combo.setItemText(1, "Zeige lokale Maxima" if self.aktuelle_sprache == "de" else "Show Local Maxima")
         self.showmaxmin_combo.setItemText(2, "Zeige lokale Minima" if self.aktuelle_sprache == "de" else "Show Local Minima")
         self.lbl_limitskommastellen.setText(t["lbl_limitkommastellen"])
+        self.lbl_legendposition.setText(t["lbl_legendposition"])
         
         
 
@@ -1674,6 +1695,22 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     "<li><b>Style:</b> Color, line style, and marker type</li>"
                 "</ul>"
                 "<i>Tip: When switching datasets in the dropdown, all individual settings are saved automatically.</i>")
+
+    def update_legend_position(self):
+        current_position = self.slider_legendposition.value()
+        #Derzeitige Sprache holen
+        t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
+        first_part = t["lbl_legendposition"]
+        list_positions = ["best", "upper right", "upper left", 
+                          "lower left", "lower right", "right", 
+                          "center left", "center right", 
+                          "lower center", "upper center", "center"]
+        current_string = list_positions[current_position]
+        return(first_part + " " + current_string)
+        
+
+
+
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
     def __init__(self, parent=None, x_data=None, y_data=None, rechen_funktion = None, sprache= "de"):
