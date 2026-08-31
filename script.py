@@ -21,7 +21,7 @@ import matplotlib.ticker as ticker
 
 # 2. PySide6 Imports
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QColor, QAction
+from PySide6.QtGui import QFont, QColor, QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QRadioButton, QTableWidget, QTableWidgetItem, QWidget, QDialog, QFormLayout, QDialogButtonBox, QSlider, QCheckBox, QStyledItemDelegate, QTabWidget, QComboBox, QColorDialog,  QDoubleSpinBox, QMessageBox, QPushButton, QFileDialog, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel  # H = Horizontal,  V = Vertikal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -39,7 +39,7 @@ TRANSLATIONS = {
         "tab_data": "Daten",
         "tab_style": "Style",
         "tab_import": "Importieren/Exportieren",
-        "btn_excel": "Excel öffnen",
+        "btn_excel": "Öffne Excel / CSV",
         "btn_save": "Plot speichern unter...",
         "btn_groesstfehler": "Datenmanipulation | Fehlerrechnung",
         "btn_mittelwert": "Mittelwertrechner",
@@ -92,19 +92,20 @@ TRANSLATIONS = {
         "initial_title": "noch keine Daten geladen",
         "default_x_axis": "X-Achse",
         "default_y_axis": "Y-Achse",
-        "btn_reset": "Originaldaten wiederherstellen",
+        "btn_xreset": "X-Daten zurücksetzen",
+        "btn_yreset": "Y-Daten zurücksetzen",
         "mean_preview_table": "Daten/Ergebnistabelle",
         "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
         "btn_save_data": "Daten speichern"
 
     },
     "en": {
-        "title": "Protokollix - © 2026 Jakob Breinl",
+        "title": "Protokollix - © 2026",
         "tab_general": "General",
         "tab_data": "Data",
         "tab_style": "Style",
         "tab_import": "Import/Export",
-        "btn_excel": "Open Excel",
+        "btn_excel": "Open Excel / CSV",
         "btn_save": "Save Plot as...",
         "btn_groesstfehler": "Data Manipulation | Error Calculation",
         "btn_mittelwert": "Mean Calculator",
@@ -157,7 +158,8 @@ TRANSLATIONS = {
         "initial_title": "No data available",
         "default_x_axis": "X-Axis",
         "default_y_axis": "Y-Axis",
-        "btn_reset": "Reset Data",
+        "btn_xreset": "Reset X-Data",
+        "btn_yreset": "Reset Y-Data",
         "mean_preview_table": "Data Table & Results:",
         "lbl_limitkommastellen": "Number of Decimal Points for the Limits:",
         "btn_save_data": "Save Data"
@@ -216,19 +218,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
 
     # Globale Auswahlschachtel für die aktive Y-Spalte
-        y_auswahl_hilfetext = (
-            "<b>Zentraler Datensatz-Selektor</b><br>"
-            "Mit diesem Dropdown-Menü wählst du aus, welcher Y-Datensatz "
-            "aktuell bearbeitet werden soll.<br><br>"
-            "Alle Einstellungen in den folgenden Tabs beziehen sich "
-            "<b>spezifisch auf die hier gewählte Datenreihe:</b>"
-            "<ul style='margin-top: 6px; margin-bottom: 6px; padding-left: 18px;'>"
-                "<li><b>Allgemeines:</b> Individuelles Datenlabel für die Legende</li>"
-                "<li><b>Data:</b> Y-Transformationen & Größtfehler-Berechnung</li>"
-                "<li><b>Style:</b> Farbe, Linienstil und Marker-Typ</li>"
-            "</ul>"
-            "<i>Tipp: Bei einem Wechsel im Dropdown werden alle Einstellungen der einzelnen Spalten automatisch gespeichert.</i>"
-        )
         
         layout_y_auswahl = QHBoxLayout()
         self.label_aktiverDatensatz = QLabel()
@@ -237,7 +226,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.aktive_y_combo = QComboBox()
         self.aktive_y_combo.addItem("No Data available")
         layout_y_auswahl.addWidget(self.aktive_y_combo)
-        layout_y_auswahl.addWidget(MeinPlotterApp.erstelle_hilfe_button(y_auswahl_hilfetext))
+        self.menu_hilfebutton = MeinPlotterApp.erstelle_hilfe_button(self.get_hilfetext())
+        layout_y_auswahl.addWidget(self.menu_hilfebutton)
         
         # Ganz oben ins Haupt-Bedienfeld einfügen
         layout_tab_label.addLayout(layout_y_auswahl) # Oder ganz oben im Data/Style-Tab
@@ -430,9 +420,19 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
     #Button zum Zurücksetzen der Daten
 
-        self.btn_reset_data = QPushButton()
-        self.btn_reset_data.clicked.connect(self.reset_daten)
-        trafo_tab_layout.addWidget(self.btn_reset_data)
+
+        layout_reset_data = QHBoxLayout()
+        #Y Zurücksetz Button
+        self.btn_reset_xdata = QPushButton()
+        layout_reset_data.addWidget(self.btn_reset_xdata)
+        self.btn_reset_xdata.clicked.connect(self.reset_xdaten)
+        #X Zurücksetz Button
+        self.btn_reset_ydata = QPushButton()
+        layout_reset_data.addWidget(self.btn_reset_ydata)
+        self.btn_reset_ydata.clicked.connect(self.reset_ydaten)
+
+
+        trafo_tab_layout.addLayout(layout_reset_data)
 
         self.btn_oeffne_mittelwert = QPushButton("Mittelwertrechner")
         self.btn_oeffne_mittelwert.setStyleSheet("font-weight: bold;")
@@ -557,8 +557,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.save_button.setFont(font)
 
         # Ins Tab-Layout einfügen
-        tab_import_export_layout.addStretch()
-        tab_import_export_layout.addWidget(self.save_button)    
+    
+        tab_import_export_layout.addWidget(self.save_button)   
+        tab_import_export_layout.addStretch() 
 
 #Menüleiste oben hinzufügen
         menubar = self.menuBar()
@@ -1001,12 +1002,19 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         msgBox.exec()
 
         dateiname, _ = QFileDialog.getOpenFileName(
-        self, "Excel-Datei auswählen", "", "Excel-Dateien (*.xlsx *.xls)") # *xlsx etc. ist ein Filter, nur diese Dateien können ausgewählt werden! 
+        self, 
+        "Messdaten auswählen" if self.aktuelle_sprache == "de" else "Select Data File", "",  "Messdaten (*.xlsx *.xls *.csv);;Excel-Dateien (*.xlsx *.xls);;CSV-Dateien (*.csv)")
         if dateiname: # if dateiname is not none
             print(dateiname)
 
             try: 
-                raw_df = pd.read_excel(dateiname, header = None)
+                if dateiname.lower().endswith(".csv"):
+                    # sep=None zusammen mit engine='python' erkennt automatisch Komma, Semikolon oder Tabulator!
+                    # decimal=',' sorgt dafür, dass auch deutsche Kommazahlen (12,4) sauber als Float gelesen werden
+                    raw_df = pd.read_csv(dateiname, header=None, sep=None, engine="python", decimal=",")
+                else:
+                    raw_df = pd.read_excel(dateiname, header=None)
+
                 raw_df = raw_df.dropna(how = "all").reset_index(drop = True)
                 raw_df = raw_df.dropna(how='all', axis=1)
 
@@ -1437,16 +1445,31 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         self.plot_aktualisieren()
 
-    def reset_daten(self):
-        if self.x_data_raw is not None and self.y_dict_raw:
+    def reset_xdaten(self):
+        if self.x_data_raw is not None:
             self.x_data = self.x_data_raw.copy()
-            self.y_dict = {k: v.copy() for k, v in self.y_dict_raw.items()}
             self.x_err = None
-            for k in self.y_styles:
-                self.y_styles[k]["y_err"] = None
             self.plot_aktualisieren()
-            QMessageBox.information(self, "Reset", "Alle Daten wurden auf den ursprünglichen Zustand der Excel-Datei zurückgesetzt.")
+            QMessageBox.information(self, "Reset", "Alle X-Daten wurden auf den ursprünglichen Zustand der Excel-Datei zurückgesetzt." if self.aktuelle_sprache == "de" else "All X-Data had been reset")
 
+    def reset_ydaten(self):
+        aktive_spalte = self.aktive_y_combo.currentText()
+        if self.y_dict_raw and aktive_spalte in self.y_dict_raw:
+            # Nur die aktive Spalte aus dem Backup wiederherstellen
+            self.y_dict[aktive_spalte] = self.y_dict_raw[aktive_spalte].copy()
+            
+            # Nur den Fehlerbalken der aktiven Spalte entfernen
+            if aktive_spalte in self.y_styles:
+                self.y_styles[aktive_spalte]["y_err"] = None
+                
+            self.plot_aktualisieren()
+            
+            msg = (
+                f"Die Daten für '{aktive_spalte}' wurden zurückgesetzt." 
+                if self.aktuelle_sprache == "de" 
+                else f"Data for '{aktive_spalte}' has been reset."
+            )
+            QMessageBox.information(self, "Reset", msg)
     def retranslate_ui(self):
         # 1. Übersetzungspaket holen
         t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
@@ -1486,7 +1509,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.btn_oeffne_mittelwert.setText(t["btn_mittelwert"])
         self.achsenlimit_button.setText(t["btn_autolimits"])
         self.color_button.setText(t["choose_color"])
-        self.btn_reset_data.setText(t["btn_reset"])
+        self.btn_reset_xdata.setText(t["btn_xreset"])
+        self.btn_reset_ydata.setText(t["btn_yreset"])
+        self.menu_hilfebutton.setToolTip(self.get_hilfetext())
 
         # 5. Labels & Placeholdernamen anpassen
         self.label_aktiverDatensatz.setText(f"<b>{t['lbl_active_ds']}</b>")
@@ -1622,6 +1647,33 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     f"Die Datei konnte nicht gespeichert werden:\n\n{str(e)}"
                 )
 
+    def get_hilfetext(self):
+        if self.aktuelle_sprache == "de":
+            return (
+            "<b>Zentraler Datensatz-Selektor</b><br>"
+            "Mit diesem Dropdown-Menü wählst du aus, welcher Y-Datensatz "
+            "aktuell bearbeitet werden soll.<br><br>"
+            "Alle Einstellungen in den folgenden Tabs beziehen sich "
+            "<b>spezifisch auf die hier gewählte Datenreihe:</b>"
+            "<ul style='margin-top: 6px; margin-bottom: 6px; padding-left: 18px;'>"
+                "<li><b>Allgemeines:</b> Individuelles Datenlabel für die Legende</li>"
+                "<li><b>Data:</b> Y-Transformationen & Größtfehler-Berechnung</li>"
+                "<li><b>Style:</b> Farbe, Linienstil und Marker-Typ</li>"
+            "</ul>"
+            "<i>Tipp: Bei einem Wechsel im Dropdown werden alle Einstellungen der einzelnen Spalten automatisch gespeichert.</i>")
+        else:
+            return (
+                "<b>Central Dataset Selector</b><br>"
+                "Use this dropdown menu to select which Y dataset "
+                "is currently being edited.<br><br>"
+                "All settings in the following tabs apply "
+                "<b>specifically to the selected dataset:</b>"
+                "<ul style='margin-top: 6px; margin-bottom: 6px; padding-left: 18px;'>"
+                    "<li><b>General:</b> Custom data label for the legend</li>"
+                    "<li><b>Data:</b> Y transformations & maximum error calculation</li>"
+                    "<li><b>Style:</b> Color, line style, and marker type</li>"
+                "</ul>"
+                "<i>Tip: When switching datasets in the dropdown, all individual settings are saved automatically.</i>")
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
     def __init__(self, parent=None, x_data=None, y_data=None, rechen_funktion = None, sprache= "de"):
@@ -2775,6 +2827,24 @@ class MittelwertDialog(QDialog):
 # --- Startpunkt der Anwendung ---x
 if __name__ == "__main__": # Alles unter der if Abfrage wird nur dann ausgefsührt, wenn ich die Datei direkt starte
     app = QApplication(sys.argv)
+
+    # Namen der Anwendung setzen
+    app.setApplicationName("Protokollix")
+    app.setApplicationDisplayName("Protokollix")
+    #Icon der Anwednung setzen
+
+    # Absoluten Pfad zur Bilddatei relativ zum Skript ermitteln
+    basis_ordner = os.path.dirname(os.path.abspath(__file__))
+    icon_pfad = os.path.join(basis_ordner, "icon.png")
+
+    # Nur setzen, wenn die Datei wirklich existiert:
+    if os.path.exists(icon_pfad):
+        app_icon = QIcon(icon_pfad)
+        app.setWindowIcon(app_icon)
+
+    fenster = MeinPlotterApp()
+    if os.path.exists(icon_pfad):
+        fenster.setWindowIcon(app_icon)
     fenster = MeinPlotterApp() # Hier wird unser Bauplan angewendet.
     fenster.show()
     QApplication.instance().styleHints().setColorScheme(Qt.ColorScheme.Light)
