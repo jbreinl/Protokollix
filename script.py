@@ -47,8 +47,8 @@ TRANSLATIONS = {
         "lbl_title_input": "Plot-Titel (LaTeX-Support):",
         "lbl_seitenverhältnis": "Seitenverhältnis:",
         "lbl_fontsize": "Schriftgröße:",
-        "lbl_x_axis": "X-Achse (LaTeX Support)",
-        "lbl_y_axis": "Y-Achse (LaTeX Support)",
+        "lbl_x_axis": "X-Achse (LaTeX Support):",
+        "lbl_y_axis": "Y-Achse (LaTeX Support):",
         "lbl_x_axis_limits": "X-Achsenlimits",
         "lbl_fit": "Ausgleichskurve / Fit:",
         "lbl_y_axis_limits": "Y-Achsenlimits",
@@ -67,7 +67,7 @@ TRANSLATIONS = {
         "gf_rendered_ph": "Die gerenderte Formel erscheint hier...",
         "gf_formula_label": "Mathematische Formel:",
         "gf_formula_ph": "z. B. 4 * pi^2 * (m * V0) / (A^2 * p * tau^2)",
-        "gf_btn_excel": "Importiere Unsicherheiten als Excel",
+        "gf_btn_excel": "Importiere Y-Unsicherheiten als Excel",
         "gf_preview_table": "Ergebnis- & Datentabelle (Live-Vorschau):",
         "gf_val_ph": "Wert für {var} (z.B. 1.5 oder x)",
         "gf_err_ph": "Delta {var} (z.B. 0.01)",
@@ -90,14 +90,15 @@ TRANSLATIONS = {
         "choose_color": "Farbe wählen",
         "initial_title": "keine Daten geladen",
         "initial_title": "noch keine Daten geladen",
-        "default_x_axis": "X-Achse",
-        "default_y_axis": "Y-Achse",
+        "default_x_axis": "X-Achse:",
+        "default_y_axis": "Y-Achse:",
         "btn_xreset": "X-Daten zurücksetzen",
         "btn_yreset": "Y-Daten zurücksetzen",
         "mean_preview_table": "Daten/Ergebnistabelle",
         "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
         "btn_save_data": "Daten speichern",
-        "lbl_legendposition": "Legenden Position:"
+        "lbl_legendposition": "Legenden Position:",
+        "lbl_dpi": "DPI beim Export:"
 
     },
     "en": {
@@ -114,8 +115,8 @@ TRANSLATIONS = {
         "lbl_title_input": "Plot Title (LaTeX Support):",
         "lbl_seitenverhältnis": "Aspect Ratio:",
         "lbl_fontsize": "Fontsize:",
-        "lbl_x_axis": "X-Axis Label (LaTeX Support)",
-        "lbl_y_axis": "Y-Axis Label (LaTeX Support)",
+        "lbl_x_axis": "X-Axis Label (LaTeX Support):",
+        "lbl_y_axis": "Y-Axis Label (LaTeX Support):",
         "lbl_x_axis_limits": "Set X-Limits",
         "lbl_fit": "Regression Curve / Fit:",
         "lbl_y_axis_limits": "Set Y-Limits",
@@ -134,7 +135,7 @@ TRANSLATIONS = {
         "gf_rendered_ph": "The rendered formula will appear here...",
         "gf_formula_label": "Mathematical Formula:",
         "gf_formula_ph": "e.g. 4 * pi^2 * (m * V0) / (A^2 * p * tau^2)",
-        "gf_btn_excel": "Import Uncertainties from Excel",
+        "gf_btn_excel": "Import Y-Errors from Excel",
         "gf_preview_table": "Result & Data Table (Live Preview):",
         "gf_val_ph": "Value for {var} (e.g. 1.5 or x)",
         "gf_err_ph": "Delta {var} (e.g. 0.01)",
@@ -164,7 +165,8 @@ TRANSLATIONS = {
         "mean_preview_table": "Data Table & Results:",
         "lbl_limitkommastellen": "Number of Decimal Points for the Limits:",
         "btn_save_data": "Save Data",
-        "lbl_legendposition": "Legend Position:"
+        "lbl_legendposition": "Legend Position:",
+        "lbl_dpi": "DPI for Export:"
         
     }
 }
@@ -567,6 +569,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # Speicher-Button anlegen
         self.save_button = QPushButton("Plot speichern unter...")
 
+
+
         # (Optional) Schrift etwas hervorheben
         font = self.save_button.font()
         font.setBold(True)
@@ -574,7 +578,33 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         # Ins Tab-Layout einfügen
     
-        tab_import_export_layout.addWidget(self.save_button)   
+        tab_import_export_layout.addWidget(self.save_button) 
+
+
+        #Export Einstellungen:
+        self.lbl_dpi = QLabel()
+        tab_import_export_layout.addWidget(self.lbl_dpi)
+
+        self.slider_dpi = QSlider(Qt.Orientation.Horizontal)
+        self.slider_dpi.setRange(0,4)
+        self.slider_dpi.setSingleStep(1)
+        self.slider_dpi.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.slider_dpi.setTickInterval(1)
+        self.slider_dpi.setValue(2)
+        self.slider_dpi.setEnabled(True)
+        tab_import_export_layout.addWidget(self.slider_dpi)
+
+        layout_dpi_labels = QHBoxLayout()
+        layout_dpi_labels.setContentsMargins(0, 0, 0, 0)
+        for val in ["100", "150", "300", "600", "1200"]:
+            lbl = QLabel(val)
+            lbl.setStyleSheet("font-size: 9px; color: #666666;")
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout_dpi_labels.addWidget(lbl)
+
+        tab_import_export_layout.addLayout(layout_dpi_labels)
+
+
         tab_import_export_layout.addStretch() 
 
 #Menüleiste oben hinzufügen
@@ -716,8 +746,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # Übersetzungspaket für leere Achsenbeschriftungen holen
         t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
         default_title = t.get("initial_title", "noch keine Daten geladen")
-        default_x = t.get("default_x_axis", "X-Achse")
-        default_y = t.get("default_y_axis", "Y-Achse")
+        default_x = t.get("default_x_axis", "X-Achse:")
+        default_y = t.get("default_y_axis", "Y-Achse:")
 
         # Beschriftungen setzen
         self.ax.set_title(titel_text if titel_text else default_title, fontsize=fontsize)
@@ -1159,6 +1189,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
     def save_plot(self):
             # Öffnet den System-Speicherdialog mit Dateityp-Filtern
+            current_dpi = self.get_current_dpi()
             dateiname, gewaehlter_filter = QFileDialog.getSaveFileName(
                 self,
                 "Plot speichern",
@@ -1171,7 +1202,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 try:
                     # Speichert die Figure in hoher Auflösung (300 DPI für gestochen scharfen Druck)
                     # bbox_inches='tight' schneidet unnötige weiße Ränder außen sauber ab
-                    self.figure.savefig(dateiname, dpi=300, bbox_inches='tight')
+                    self.figure.savefig(dateiname, dpi=current_dpi, bbox_inches='tight')
 
                     # Erfolgsmeldung anzeigen
                     QMessageBox.information(
@@ -1235,12 +1266,12 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             btn.setCursor(Qt.CursorShape.WhatsThisCursor)
             btn.setStyleSheet("""
                 QPushButton {
-                    background-color: #e0e0e0;
-                    color: #333333;
+                    background-color: #1686ff;
+                    color: #FFFFFF;
                     border-radius: 9px;
                     font-weight: bold;
                     font-size: 11px;
-                    border: 1px solid #b0b0b0;
+                    border: none;
                 }
                 QPushButton:hover {
                     background-color: #1f77b4;
@@ -1546,6 +1577,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.showmaxmin_combo.setItemText(2, "Zeige lokale Minima" if self.aktuelle_sprache == "de" else "Show Local Minima")
         self.lbl_limitskommastellen.setText(t["lbl_limitkommastellen"])
         self.lbl_legendposition.setText(t["lbl_legendposition"])
+        self.lbl_dpi.setText(t["lbl_dpi"])
         
         
 
@@ -1596,7 +1628,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     peaks_idx, _ = find_peaks(y_daten_reverse)
                     x_val_peaks = x_daten[peaks_idx]
                     y_val_peaks = y_daten[peaks_idx] 
-                    print(x_val_peaks, y_val_peaks)
                     return (x_val_peaks, y_val_peaks)
             
             # Ansonsten (bei "locmax" oder zur Peak-Prüfung bei "dontshow") -> Maxima berechnen
@@ -1605,7 +1636,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     peaks_idx, _ = find_peaks(y_daten)
                     x_val_peaks = x_daten[peaks_idx]
                     y_val_peaks = y_daten[peaks_idx]
-                    print(x_val_peaks, y_val_peaks)
                     return (x_val_peaks, y_val_peaks)
 
         return np.array([]), np.array([])
@@ -1708,7 +1738,11 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         current_string = list_positions[current_position]
         return(first_part + " " + current_string)
         
+    def get_current_dpi(self):
+        values = (100, 150, 300, 600, 1200)
+        return values[self.slider_dpi.value()]
 
+        
 
 
 class GroesstfehlerDialog(QDialog):
@@ -1718,14 +1752,12 @@ class GroesstfehlerDialog(QDialog):
         self.setWindowTitle("Datenauswertungmanipulation und Größtfehlerrechner")
         self.resize(650, 600)
 
-        self.y_imported_err = None  # Speichert das NumPy-Array der geladenen Y-Fehler
+        self.imported_err = None
         self.x_data = x_data
         self.y_data = y_data
         self.y_data_orig = y_data.copy() if isinstance(y_data, np.ndarray) else y_data  # ORIGINAL SICHERN!
         self.rechen_funktion = rechen_funktion
         self.aktuelle_sprache = sprache
-        self.imported_err = None
-        self.y_imported_err = None
 
         # Hauptlayout
         self.layout = QVBoxLayout()
@@ -1769,22 +1801,6 @@ class GroesstfehlerDialog(QDialog):
         self.latex_formel.setTextFormat(Qt.TextFormat.RichText)
         self.layout.addWidget(self.latex_formel)
 
-
-
-        hilfetext_matheformel = (
-        "<b>Bedienungsanleitung: Datenauswertung &amp; Größtfehlerrechner</b><br><br>"
-        "<b>1. Zielauswahl:</b><br>"
-        "Wähle aus, ob die berechneten Werte/Fehlerbalken auf die X-Achse, Y-Achse oder nur in die Vorschau-Tabelle geschrieben werden sollen.<br><br>"
-        "<b>2. Formelsyntax &amp; Funktionen:</b><br>"
-        "• <b>Variablen:</b> <code>x</code> und <code>y</code> für Messreihen; alle anderen Namen (z. B. <code>R<sub>0</sub></code>, <code>A</code>) erzeugen Eingabefelder für Konstanten.<br>"
-        "• <b>Grundoperationen:</b> <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (Potenz)<br>"
-        "• <b>Funktionen:</b> <code>sqrt()</code> (Wurzel), <code>exp()</code> (<i>e</i><sup>x</sup>), <code>log()</code> / <code>ln()</code> (nat. Log.), <code>sin()</code>, <code>cos()</code>, <code>tan()</code><br>"
-        "• <b>Ableitung:</b> <code>diff(y)</code> berechnet den Differenzenquotienten <sup>dy</sup>/<sub>dx</sub> (Steigung per <code>np.gradient</code>).<br>"
-        "• <b>Konstanten:</b> <code>pi</code> (&pi;)<br><br>"
-        "<b>3. Werte &amp; Unsicherheiten (&Delta;):</b><br>"
-        "• Zahlen können in E-Schreibweise eingegeben werden (z. B. <code>3.908e-3</code> oder <code>10^-3</code>).<br>"
-        "• Über die partiellen Ableitungen der Formel werden die Betragsfehler automatisch zum Gesamt-Größtfehler &Delta;f aufsummiert."
-    )
         # 4. Formeleingabe
         layout_formel_input = QHBoxLayout()
         self.lbl_formel_title = QLabel()
@@ -1872,8 +1888,6 @@ class GroesstfehlerDialog(QDialog):
         for var, widget in self.inputs_digitserr.items():
             self.gespeicherte_digits[var] = widget.text()
 
-
-
         text = self.formel_input.text().strip()
         if not text:
             return
@@ -1922,21 +1936,22 @@ class GroesstfehlerDialog(QDialog):
                 err_input = QLineEdit(err_text)
                 digiterr_input = QLineEdit(digit_text)
                 
-                
-                # NEU: Prüfe, ob für die jeweilige Variable ein Excel-Import vorliegt!
-                has_excel = getattr(self, "imported_err", None) is not None
-                if var.lower() == ziel_var and has_excel:
-                    err_input.setText("Excel Import" if self.aktuelle_sprache == "en" else "Excel-Import")
+                # Prüfen, ob für diese konkrete Variable ein Import vorliegt:
+                ziel_var = "x" if self.radio_x.isChecked() else "y"
+                hat_import = (var.lower() == ziel_var and self.imported_err is not None)
+
+                if hat_import:
+                    hinweis = "Excel-Import" if self.aktuelle_sprache == "de" else "Excel Import"
+                    err_input.setText(hinweis)
                     err_input.setEnabled(False)
                     err_input.setStyleSheet("background-color: #e0e0e0; color: #555555; font-style: italic;")
 
-                    digiterr_input.setText("Excel Import" if self.aktuelle_sprache == "en" else "Excel-Import")
+                    digiterr_input.setText(hinweis)
                     digiterr_input.setEnabled(False)
                     digiterr_input.setStyleSheet("background-color: #e0e0e0; color: #555555; font-style: italic;")
                 else:
                     err_input.setPlaceholderText(t["gf_err_ph"].format(var=var))
-                    digiterr_input.setPlaceholderText("z.B. 4" if self.aktuelle_sprache == "en" else "e.g. 4")
-
+                    digiterr_input.setPlaceholderText("z.B. 4" if self.aktuelle_sprache == "de" else "e.g. 4")
                 val_input.textChanged.connect(self.aktualisiere_tabelle_live)
                 err_input.textChanged.connect(self.aktualisiere_tabelle_live)
                 digiterr_input.textChanged.connect(self.aktualisiere_tabelle_live)
@@ -2031,16 +2046,14 @@ class GroesstfehlerDialog(QDialog):
 
         for var, input_widget in self.inputs_unsicherheiten.items():
             var_lower = var.lower()
-            # Wenn ein Excel-Array geladen wurde und wir die passende Variable prüfen:
-            if var_lower == ziel_var and getattr(self, "imported_err", None) is not None:
+            
+            # 1. Wurde für die Ziel-Variable eine Excel importiert?
+            if var_lower == ziel_var and self.imported_err is not None:
                 unsicherheiten[var] = self.imported_err
-            elif var_lower == "y" and getattr(self, "y_imported_err", None) is not None:
-                unsicherheiten[var] = self.y_imported_err
             else:
                 txt = input_widget.text().strip()
                 if not txt or txt in ["Excel-Import", "Excel Import"]:
                     unsicherheiten[var] = 0.0
-    
                 else:
                     try:
                         unsicherheiten[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
@@ -2179,7 +2192,8 @@ class GroesstfehlerDialog(QDialog):
             return (
                 "<b>User Guide: Data Evaluation &amp; Error Calculator</b><br><br>"
                 "<b>1. Target Selection:</b> Choose whether results/error bars apply to X-axis, Y-axis, or table only.<br><br>"
-                "<b>2. Syntax:</b> Use <code>x</code> and <code>y</code> for datasets. Custom variables create constant input fields.<br>"
+                "<b>2. Syntax:</b> Use <code>x</code> and <code>y</code> for datasets. Custom variables create constant input fields. <b> "
+                "Important: </b> Even if the X or Y Axis in your Experiment isn't named with <code>X</code> or <code>Y</code> (so e.g. time <code>t</code> or distance <code>s</code>), the calculator will still take <code>X</code> and <code>Y</code> as the inputs for the datasets.<br>"
                 "• Functions: <code>sqrt()</code>, <code>exp()</code>, <code>log()</code>, <code>sin()</code>, <code>cos()</code>, <code>tan()</code><br>"
                 "• Derivative: <code>diff(y)</code> calculates <sup>dy</sup>/<sub>dx</sub> via <code>np.gradient</code>.<br><br>"
                 "<b>Import Uncertainties from Excel:</b> "
@@ -2194,7 +2208,8 @@ class GroesstfehlerDialog(QDialog):
             return (
                 "<b>Bedienungsanleitung: Datenauswertung &amp; Größtfehlerrechner</b><br><br>"
                 "<b>1. Zielauswahl:</b> Wähle aus, ob Werte/Fehlerbalken auf X-, Y-Achse oder nur in die Tabelle geschrieben werden.<br><br>"
-                "<b>2. Formelsyntax:</b> <code>x</code> und <code>y</code> für Messreihen; andere Namen erzeugen Eingabefelder für Konstanten.<br>"
+                "<b>2. Formelsyntax:</b> <code>x</code> und <code>y</code> für Messreihen; andere Namen erzeugen Eingabefelder für Konstanten.  <b> Wichtig: </b>"
+                "Selbst wenn in einer Messung die X-Achse z.B. die Zeit beschreibt, also <code> t </code> abgekürzt wird in einer Formel, so heißen die X-Daten im Programm immer noch <code> X </code>! Selbes gilt für die Y-Achse.<br>"
                 "• Funktionen: <code>sqrt()</code>, <code>exp()</code>, <code>log()</code>, <code>sin()</code>, <code>cos()</code>, <code>tan()</code><br>"
                 "• Ableitung: <code>diff(y)</code> berechnet <sup>dy</sup>/<sub>dx</sub> per <code>np.gradient</code>.<br><br>"
                 "<b>Importiere Unsicherheiten als Excel:</b> "
@@ -2207,34 +2222,37 @@ class GroesstfehlerDialog(QDialog):
             )
 
     def importiere_unsicherheiten_excel(self):
-        # 1. Info-Box mit Format-Hinweis anzeigen
         is_en = self.aktuelle_sprache == "en"
+        ziel = "X" if self.radio_x.isChecked() else "Y"
         
+        # 1. Info-Box mit Format-Hinweis anzeigen
         msgBox = QMessageBox(self)
         msgBox.setIcon(QMessageBox.Icon.Information)
         msgBox.setWindowTitle("Format-Hinweis" if not is_en else "Format Notice")
         msgBox.setText("<b>Struktur für den Unsicherheiten-Import</b>" if not is_en else "<b>Structure for Uncertainty Import</b>")
         
         html_text = (
-            "Bitte wähle eine Excel-Datei mit <b>genau EINER Spalte</b> aus, die die Unsicherheiten (Δy) enthält:<br><br>"
+            f"Bitte wähle eine Excel-Datei mit <b>genau EINER Spalte</b> aus.<br><br>"
+            f"Da oben <b>{ziel}-Daten</b> ausgewählt sind, werden diese Werte als <b>Δ{ziel}</b> geladen:<br><br>"
             "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
-            "  <tr style='background-color: #e0e0e0; font-weight: bold;'><td>Δy / Einheiten</td></tr>"
+            f"  <tr style='background-color: #e0e0e0; font-weight: bold;'><td>Δ{ziel} / Einheit</td></tr>"
             "  <tr><td>0.02</td></tr>"
             "  <tr><td>0.05</td></tr>"
             "  <tr><td>0.01</td></tr>"
             "</table><br>"
-            "• Die erste Zeile kann optional den Namen/Einheit enthalten.<br>"
-            "• Die Spaltenlänge sollte der Längen deiner Messdaten entsprechen."
+            "• Die erste Zeile kann optional eine Kopfzeile/Einheit sein.<br>"
+            "• Die Länge der Spalte sollte der Datenlänge entsprechen."
         ) if not is_en else (
-            "Please select an Excel file with <b>exactly ONE column</b> containing the uncertainties (Δy):<br><br>"
+            f"Please select an Excel file with <b>exactly ONE column</b>.<br><br>"
+            f"Since <b>{ziel}-Data</b> is selected above, these values will be loaded as <b>Δ{ziel}</b>:<br><br>"
             "<table border='1' cellspacing='0' cellpadding='5' style='border-collapse: collapse; text-align: center;'>"
-            "  <tr style='background-color: #e0e0e0; font-weight: bold;'><td>Δy / Units</td></tr>"
+            f"  <tr style='background-color: #e0e0e0; font-weight: bold;'><td>Δ{ziel} / Unit</td></tr>"
             "  <tr><td>0.02</td></tr>"
             "  <tr><td>0.05</td></tr>"
             "  <tr><td>0.01</td></tr>"
             "</table><br>"
-            "• The first row may optionally contain headers/units.<br>"
-            "• The column length should match your dataset length."
+            "• The first row may optionally be a header/unit.<br>"
+            "• Column length should match the dataset length."
         )
         
         msgBox.setInformativeText(html_text)
@@ -2261,28 +2279,27 @@ class GroesstfehlerDialog(QDialog):
                     )
                     return
 
-                # Header unterscheiden (ob Zeile 1 Text ist)
+                # Header unterscheiden
                 try:
                     float(raw_df.iloc[0, 0])
                     datafile = raw_df
                 except (ValueError, TypeError):
                     datafile = raw_df.iloc[1:].reset_index(drop=True)
 
-                self.y_imported_err = datafile.iloc[:, 0].dropna().to_numpy(dtype=float)
-                self.imported_err = self.y_imported_err
+                self.imported_err = datafile.iloc[:, 0].dropna().to_numpy(dtype=float)
 
-                # Erfolgsmeldung & Eingabefelder sperren/aktualisieren
                 QMessageBox.information(
                     self, 
                     "Erfolg" if not is_en else "Success", 
-                    f"Es wurden {len(self.y_imported_err)} Unsicherheitswerte erfolgreich geladen!" if not is_en else f"Successfully loaded {len(self.y_imported_err)} uncertainty values!"
+                    f"Es wurden {len(self.imported_err)} Werte für Δ{ziel} geladen!" if not is_en else f"Successfully loaded {len(self.imported_err)} values for Δ{ziel}!"
                 )
                 
-                # Eingabefelder neu rendern/sperren
+                # Eingabefelder direkt aktualisieren
                 self.aktualisiere_variablen_felder()
 
             except Exception as e:
-                QMessageBox.critical(self, "Fehler", f"Details: {str(e)}")
+                QMessageBox.critical(self, "Fehler" if not is_en else "Error", f"Details: {str(e)}")
+
 
     def aktualisiere_button_status(self):
         nur_berechnen_aktiv = self.radio_nur_ausgabe.isChecked()
@@ -2292,8 +2309,18 @@ class GroesstfehlerDialog(QDialog):
         if not nur_berechnen_aktiv:
             # Setzt y_data wieder strikt auf den originalen Datensatz zurück
             self.y_data = self.y_data_orig.copy() if isinstance(self.y_data_orig, np.ndarray) else self.y_data_orig
+
+
+        if self.radio_x.isChecked():
+            neuer_text = "x"
+            self.btn_import_excel.setText("Importiere X-Unsicherheiten als Excel" if self.aktuelle_sprache == "de" else "Import X-Errors from Excel" )
+        else:
+            # Gilt sowohl für radio_y als auch für radio_nur_ausgabe
+            neuer_text = "y"
+            self.btn_import_excel.setText("Importiere Y-Unsicherheiten als Excel" if self.aktuelle_sprache == "de" else "Import Y-Errors from Excel" )
+        self.formel_input.setText(neuer_text)
             # Aktualisiert das Formular und die Vorschau-Tabelle mit den originalen Daten
-            self.aktualisiere_variablen_felder()
+        self.aktualisiere_variablen_felder()
    
     def importiere_singledatacolumns(self):
         # 1. Info-Box mit Format-Hinweis anzeigen
@@ -2882,7 +2909,6 @@ if __name__ == "__main__": # Alles unter der if Abfrage wird nur dann ausgefsüh
     fenster = MeinPlotterApp()
     if os.path.exists(icon_pfad):
         fenster.setWindowIcon(app_icon)
-    fenster = MeinPlotterApp() # Hier wird unser Bauplan angewendet.
     fenster.show()
     QApplication.instance().styleHints().setColorScheme(Qt.ColorScheme.Light)
     sys.exit(app.exec()) # App exec ist eine Endlosschleife, wenn ich das Programm schließe gibt es 0 zurück, wenn es abstürzt 1 
