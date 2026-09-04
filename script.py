@@ -36,9 +36,9 @@ TRANSLATIONS = {
     "de": {
         "title": "Protokollix - © 2026",
         "tab_general": "Allgemeines",
-        "tab_data": "Daten",
+        "tab_math": "Rechner",
         "tab_style": "Style",
-        "tab_import": "Importieren/Exportieren",
+        "tab_import": "Daten",
         "btn_excel": "Öffne Excel / CSV",
         "btn_save": "Plot speichern unter...",
         "btn_groesstfehler": "Datenmanipulation | Fehlerrechnung",
@@ -98,15 +98,16 @@ TRANSLATIONS = {
         "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
         "btn_save_data": "Daten speichern",
         "lbl_legendposition": "Legenden Position:",
-        "lbl_dpi": "DPI beim Export:"
+        "lbl_dpi": "DPI beim Export:",
+        "lbl_datentabelle": "Datentabelle"
 
     },
     "en": {
         "title": "Protokollix - © 2026",
         "tab_general": "General",
-        "tab_data": "Data",
+        "tab_math": "Calculator",
         "tab_style": "Style",
-        "tab_import": "Import/Export",
+        "tab_import": "Data",
         "btn_excel": "Open Excel / CSV",
         "btn_save": "Save Plot as...",
         "btn_groesstfehler": "Data Manipulation | Error Calculation",
@@ -166,7 +167,8 @@ TRANSLATIONS = {
         "lbl_limitkommastellen": "Number of Decimal Points for the Limits:",
         "btn_save_data": "Save Data",
         "lbl_legendposition": "Legend Position:",
-        "lbl_dpi": "DPI for Export:"
+        "lbl_dpi": "DPI for Export:",
+        "lbl_datentabelle": "Data Table"
         
     }
 }
@@ -552,12 +554,19 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         style_tab_layout.addStretch()
 
 
-    #Import/Export
+    #Import/Export / Daten
 
         #Excel öffnen Button
 
         tab_import_export_widget = QWidget()
         tab_import_export_layout = QVBoxLayout()
+
+        #Tabelle zum Laden der Daten einfügen
+        self.lbl_datentabelle = QLabel()
+        tab_import_export_layout.addWidget(self.lbl_datentabelle)
+        self.datentabelle = QTableWidget()
+        tab_import_export_layout.addWidget(self.datentabelle)
+        self.update_datentabelle()
 
         #Button zum Datei öffnen einfügen
 
@@ -603,7 +612,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             layout_dpi_labels.addWidget(lbl)
 
         tab_import_export_layout.addLayout(layout_dpi_labels)
-
 
         tab_import_export_layout.addStretch() 
 
@@ -708,6 +716,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.aktive_y_combo.currentTextChanged.connect(self.spalte_gewechselt)
         self.limitskommastellen_slider.valueChanged.connect(self.update_limitkommastellen)
         self.save_maxmin.clicked.connect(self.save_maxmin_excel)
+        self.datentabelle.cellChanged.connect(self.tabelle_zelle_geaendert)
 
     def plot_aktualisieren(self):
 
@@ -1170,8 +1179,11 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     self.legende_input.blockSignals(True)
                     self.legende_input.setText(erste_spalte)
                     self.legende_input.blockSignals(False)
-                # Jetzt EINMAL sauber den Plot neu zeichnen
+                # Jetzt EINMAL sauber den Plot neu zeichnen und die Datentabelle updaten
+                self.update_datentabelle()
                 self.plot_aktualisieren()
+                
+
 
             except ValueError:
                 # Dieser Block wird nur ausgeführt, wenn der Text nicht zu Zahlen (float) umgewandelt werden konnte
@@ -1442,6 +1454,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 elif dialog.radio_nur_ausgabe.isChecked():
                     # Daten im Plot bleiben unverändert, die Berechnung war nur für die Tabelle gedacht
                     print("Berechnung erfolgreich durchgeführt (ohne Plot-Änderung).")
+                self.update_datentabelle()
 
             else:
                 print("Größtfehler-Berechnung abgebrochen.")
@@ -1500,6 +1513,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             self.x_data = self.x_data_raw.copy()
             self.x_err = None
             self.plot_aktualisieren()
+            self.update_datentabelle()
             QMessageBox.information(self, "Reset", "Alle X-Daten wurden auf den ursprünglichen Zustand der Excel-Datei zurückgesetzt." if self.aktuelle_sprache == "de" else "All X-Data had been reset")
 
     def reset_ydaten(self):
@@ -1513,6 +1527,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 self.y_styles[aktive_spalte]["y_err"] = None
                 
             self.plot_aktualisieren()
+            self.update_datentabelle()
             
             msg = (
                 f"Die Daten für '{aktive_spalte}' wurden zurückgesetzt." 
@@ -1530,7 +1545,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         # 3. Tab-Titel anpassen
         self.tabs.setTabText(0, t["tab_general"])
-        self.tabs.setTabText(1, t["tab_data"])
+        self.tabs.setTabText(1, t["tab_math"])
         self.tabs.setTabText(2, t["tab_style"])
         self.tabs.setTabText(3, t["tab_import"])
 
@@ -1578,6 +1593,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.lbl_limitskommastellen.setText(t["lbl_limitkommastellen"])
         self.lbl_legendposition.setText(t["lbl_legendposition"])
         self.lbl_dpi.setText(t["lbl_dpi"])
+        self.lbl_datentabelle.setText(t["lbl_datentabelle"])
         
         
 
@@ -1742,8 +1758,90 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         values = (100, 150, 300, 600, 1200)
         return values[self.slider_dpi.value()]
 
-        
+    def update_datentabelle(self):
+        print("Test")
+        if self.x_data is not None and self.y_dict:
+            try: 
+                #Daten holen
+                x_daten = self.x_data
+                first_ycolumn = list(self.y_dict.values())[0]
+                n_rows = len(first_ycolumn)
+                n_columns = len(self.y_dict) + 1 # +1 für die X Daten - also X Spalte und alle Y Spalten
+                    
+                self.datentabelle.blockSignals(True) # Kurz blockieren
+                self.datentabelle.setRowCount(n_rows)
+                self.datentabelle.setColumnCount(n_columns)
+                
 
+                #Spaltenüberschriften setzen
+                header_labels = ["X"] + list(self.y_dict.keys())
+                self.datentabelle.setHorizontalHeaderLabels(header_labels)
+
+                for i in range(n_rows):
+                    x_str = f"{self.x_data[i]:.4g}"
+                    self.datentabelle.setItem(i, 0, QTableWidgetItem(x_str))
+            
+                for col_idx, (spalten_name, y_data) in enumerate(self.y_dict.items()):
+                    for row_idx in range(n_rows):
+                        y_str = f"{y_data[row_idx]:.4g}"
+                        self.datentabelle.setItem(row_idx, col_idx + 1, QTableWidgetItem(y_str))
+
+                self.datentabelle.blockSignals(False)
+                
+
+            except Exception as e:
+                print(f"Tabellenberechnung abgebrochen. Error: {e}")
+
+        else:
+                n_rows = 50
+                n_columns = 10
+                self.datentabelle.setRowCount(n_rows)
+                self.datentabelle.setColumnCount(n_columns)
+                
+        #Anzahl der Spalten berechnen
+    
+    def tabelle_zelle_geaendert(self, row, col):
+        item = self.datentabelle.item(row, col)
+        if item is None:
+            return
+
+        text = item.text().strip().replace(",", ".")
+
+        # 1. Signale blockieren, damit setBackground KEINE Endlosschleife auslöst!
+        self.datentabelle.blockSignals(True)
+
+        try:
+            neuer_wert = float(text)
+            
+            # Schreibschutz-Sicherung aufheben, falls NumPy meckert
+            if col == 0:
+                if not self.x_data.flags.writeable:
+                    self.x_data = self.x_data.copy()
+                self.x_data[row] = neuer_wert
+            else:
+                spalten_namen = list(self.y_dict.keys())
+                gewaehlte_spalte = spalten_namen[col - 1]
+                if not self.y_dict[gewaehlte_spalte].flags.writeable:
+                    self.y_dict[gewaehlte_spalte] = self.y_dict[gewaehlte_spalte].copy()
+                self.y_dict[gewaehlte_spalte][row] = neuer_wert
+
+            # Gültig: Weißer Hintergrund
+            item.setBackground(QColor("#ffffff"))
+            
+            # Signale vor dem Plotten wieder freigeben
+            self.datentabelle.blockSignals(False)
+
+            # 2. Plot live aktualisieren!
+            self.plot_aktualisieren()
+
+        except ValueError:
+            # Ungültige Zahl: Rot markieren
+            item.setBackground(QColor("#ffcccc"))
+            self.datentabelle.blockSignals(False)
+            
+        except Exception as e:
+            self.datentabelle.blockSignals(False)
+            print(f"Fehler bei Zelländerung: {e}")
 
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
