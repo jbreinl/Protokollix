@@ -76,6 +76,7 @@ Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, u
 > Dezimaltrennzeichen: Sowohl Punkte (`1.25`) als auch Kommas (`1,25`) werden beim Einlesen automatisch erkannt und konvertiert.
 
 <br>
+
 > [!TIP]
 > Beim erstmaligen Einlesen der Mesdaten mithilfe des **Öffne Excel/CSV** Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion `find_peaks` aus der Bibliothek `SciPy`geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1-10 Sekunden dauer kann. 
 
@@ -122,7 +123,7 @@ Die entsprechenden Eingabe- und Manipulationsfelder finden sich in den Tabs **Al
 Ein mögliches Beispiel für die verschiedenen Einstellungsmöglichkeiten könnte wie folgt aussehen:
 
 <p align="center">
-  <img src="docs/Schwingung.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="docs/schwingung.png" alt="Bild einer gedämpften Schwingung" width="700"><br>
   <em>Abbildung 4: Ein Beispiel für ein Plot, der mit Protokollix erstellt wurde.</em>
 </p>
 
