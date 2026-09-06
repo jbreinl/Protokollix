@@ -9,11 +9,10 @@ import pandas as pd
 import numpy as np
 import re
 import sympy as sp
-
 from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application
 # 1. Zwingt Matplotlib dazu, PySide6 statt PyQt6 zu verwenden!
 os.environ["QT_API"] = "pyside6"
-from scipy.optimize import curve_fit
+
 
 import matplotlib
 matplotlib.use("QtAgg")
@@ -25,7 +24,7 @@ from PySide6.QtGui import QFont, QColor, QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QRadioButton, QTableWidget, QTableWidgetItem, QWidget, QDialog, QFormLayout, QDialogButtonBox, QSlider, QCheckBox, QStyledItemDelegate, QTabWidget, QComboBox, QColorDialog,  QDoubleSpinBox, QMessageBox, QPushButton, QFileDialog, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel  # H = Horizontal,  V = Vertikal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from scipy.signal import find_peaks
+
 
 
 
@@ -99,7 +98,8 @@ TRANSLATIONS = {
         "btn_save_data": "Daten speichern",
         "lbl_legendposition": "Legenden Position:",
         "lbl_dpi": "DPI beim Export:",
-        "lbl_datentabelle": "Datentabelle"
+        "lbl_datentabelle": "Datentabelle",
+        "btn_deletealldata": "Alle Daten löschen"
 
     },
     "en": {
@@ -168,7 +168,8 @@ TRANSLATIONS = {
         "btn_save_data": "Save Data",
         "lbl_legendposition": "Legend Position:",
         "lbl_dpi": "DPI for Export:",
-        "lbl_datentabelle": "Data Table"
+        "lbl_datentabelle": "Data Table",
+        "btn_deletealldata": "Delete Data"
         
     }
 }
@@ -424,22 +425,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # (Ersetze 'data_layout' durch den Namen deines Layouts im Data-Tab)
         trafo_tab_layout.addWidget(self.btn_groesstfehler)
 
-    #Button zum Zurücksetzen der Daten
-
-
-        layout_reset_data = QHBoxLayout()
-        #Y Zurücksetz Button
-        self.btn_reset_xdata = QPushButton()
-        layout_reset_data.addWidget(self.btn_reset_xdata)
-        self.btn_reset_xdata.clicked.connect(self.reset_xdaten)
-        #X Zurücksetz Button
-        self.btn_reset_ydata = QPushButton()
-        layout_reset_data.addWidget(self.btn_reset_ydata)
-        self.btn_reset_ydata.clicked.connect(self.reset_ydaten)
-
-
-        trafo_tab_layout.addLayout(layout_reset_data)
-
         self.btn_oeffne_mittelwert = QPushButton("Mittelwertrechner")
         self.btn_oeffne_mittelwert.setStyleSheet("font-weight: bold;")
         self.btn_oeffne_mittelwert.clicked.connect(self.oeffne_mittelwert_dialog)
@@ -574,20 +559,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         tab_import_export_layout.addWidget(self.datei_button)
 
         tab_import_export_widget.setLayout(tab_import_export_layout)
-
-        # Speicher-Button anlegen
-        self.save_button = QPushButton("Plot speichern unter...")
-
-
-
-        # (Optional) Schrift etwas hervorheben
-        font = self.save_button.font()
-        font.setBold(True)
-        self.save_button.setFont(font)
-
-        # Ins Tab-Layout einfügen
-    
-        tab_import_export_layout.addWidget(self.save_button) 
+        font_importbutton = self.datei_button.font()
+        font_importbutton.setBold(True)
+        self.datei_button.setFont(font_importbutton)
 
 
         #Export Einstellungen:
@@ -612,6 +586,34 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             layout_dpi_labels.addWidget(lbl)
 
         tab_import_export_layout.addLayout(layout_dpi_labels)
+
+
+            #Button zum Zurücksetzen der Daten
+
+
+        layout_reset_data = QHBoxLayout()
+        #Y Zurücksetz Button
+        self.btn_reset_xdata = QPushButton()
+        layout_reset_data.addWidget(self.btn_reset_xdata)
+        self.btn_reset_xdata.clicked.connect(self.reset_xdaten)
+        #X Zurücksetz Button
+        self.btn_reset_ydata = QPushButton()
+        layout_reset_data.addWidget(self.btn_reset_ydata)
+        self.btn_reset_ydata.clicked.connect(self.reset_ydaten)
+
+
+        tab_import_export_layout.addLayout(layout_reset_data)
+
+        self.btn_deletealldata = QPushButton()
+        tab_import_export_layout.addWidget(self.btn_deletealldata)
+
+
+        # Speicher-Button anlegen
+        self.save_button = QPushButton("Plot speichern unter...")
+        font = self.save_button.font()
+        font.setBold(True)
+        self.save_button.setFont(font)
+        tab_import_export_layout.addWidget(self.save_button) 
 
         tab_import_export_layout.addStretch() 
 
@@ -717,6 +719,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.limitskommastellen_slider.valueChanged.connect(self.update_limitkommastellen)
         self.save_maxmin.clicked.connect(self.save_maxmin_excel)
         self.datentabelle.cellChanged.connect(self.tabelle_zelle_geaendert)
+        self.btn_deletealldata.clicked.connect(self.reset_everything)
 
     def plot_aktualisieren(self):
 
@@ -894,6 +897,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     # Nicht lineare Fits (SciPy Curve Fits)
 
                     else:
+                        from scipy.optimize import curve_fit
                     # Modell-Funktion wählen
                         if fit_typ == "exp":
                             func = self.model_exp
@@ -1066,6 +1070,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             print(dateiname)
 
             try: 
+
+                #Mauszeiger auf "Beschäftigt" stellen
+                QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                 if dateiname.lower().endswith(".csv"):
                     # sep=None zusammen mit engine='python' erkennt automatisch Komma, Semikolon oder Tabulator!
                     # decimal=',' sorgt dafür, dass auch deutsche Kommazahlen (12,4) sauber als Float gelesen werden
@@ -1079,6 +1086,23 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 if raw_df.empty:
                     QMessageBox.warning(self, "Datei leer", "diese Datei enthält keine Daten!")
                     return 
+                if raw_df.shape[1] < 2:
+                    msg = (
+                        "Die Datei muss mindestens 2 Spalten enthalten:\n\n"
+                        "• Spalte 1: X-Daten\n"
+                        "• Spalte 2 (und weitere): Y-Daten"
+                        if self.aktuelle_sprache == "de"
+                        else
+                        "The file must contain at least 2 columns:\n\n"
+                        "• Column 1: X data\n"
+                        "• Column 2 (and subsequent): Y data"
+                    )
+                    QMessageBox.warning(
+                        self,
+                        "Zu wenige Spalten" if self.aktuelle_sprache == "de" else "Not Enough Columns",
+                        msg
+                    )
+                    return
                 
                 #Erste Zeile reine Zahlen?
                 erste_zeile = raw_df.iloc[0]
@@ -1198,6 +1222,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 QMessageBox.critical(
                     self,   "Allgemeiner Fehler",   f"Details zum Fehler:\n{type(e).__name__}: {str(e)}"
                 )
+
+            finally:
+                QApplication.restoreOverrideCursor()
 
     def save_plot(self):
             # Öffnet den System-Speicherdialog mit Dateityp-Filtern
@@ -1578,6 +1605,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.btn_reset_xdata.setText(t["btn_xreset"])
         self.btn_reset_ydata.setText(t["btn_yreset"])
         self.menu_hilfebutton.setToolTip(self.get_hilfetext())
+        self.btn_deletealldata.setText(t["btn_deletealldata"])
 
         # 5. Labels & Placeholdernamen anpassen
         self.label_aktiverDatensatz.setText(f"<b>{t['lbl_active_ds']}</b>")
@@ -1630,6 +1658,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # 1. Sicherung gegen None-Absturz beim Start
         if self.x_data is None or not self.y_dict:
             return np.array([]), np.array([])
+        from scipy.signal import find_peaks
 
         aktive_spalte = self.aktive_y_combo.currentText()
 
@@ -1670,6 +1699,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         aktive_spalte = self.aktive_y_combo.currentText()
         if aktive_spalte not in self.y_dict:
             return
+        from scipy.signal import find_peaks
 
         x_daten = self.x_data
         y_daten = self.y_dict[aktive_spalte]
@@ -1807,41 +1837,178 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         text = item.text().strip().replace(",", ".")
 
-        # 1. Signale blockieren, damit setBackground KEINE Endlosschleife auslöst!
         self.datentabelle.blockSignals(True)
-
         try:
-            neuer_wert = float(text)
+            # 1. Prüfen: Zahl eingegeben oder Zelle gelöscht?
+            ist_leer = (text == "")
+            neuer_wert = np.nan if ist_leer else float(text)
             
-            # Schreibschutz-Sicherung aufheben, falls NumPy meckert
+            n_rows = self.datentabelle.rowCount()
+
+            # 2. Sicherstellen, dass self.x_data existiert
+            if self.x_data is None:
+                self.x_data = np.full(n_rows, np.nan, dtype=float)
+                self.datentabelle.setHorizontalHeaderItem(0, QTableWidgetItem("X"))
+
+            # 3. Zeilen erweitern falls nötig
+            if row >= len(self.x_data):
+                zusatz = np.full(row - len(self.x_data) + 1, np.nan, dtype=float)
+                self.x_data = np.concatenate([self.x_data, zusatz])
+                for k in self.y_dict:
+                    self.y_dict[k] = np.concatenate([self.y_dict[k], zusatz.copy()])
+
+            # 4. Wert eintragen
             if col == 0:
                 if not self.x_data.flags.writeable:
                     self.x_data = self.x_data.copy()
                 self.x_data[row] = neuer_wert
             else:
                 spalten_namen = list(self.y_dict.keys())
-                gewaehlte_spalte = spalten_namen[col - 1]
+                
+                # Existiert diese Y-Spalte schon? Falls nein: sauber neu anlegen!
+                if col - 1 >= len(spalten_namen):
+                    gewaehlte_spalte = f"Datensatz {col}"
+                    self.y_dict[gewaehlte_spalte] = np.full(len(self.x_data), np.nan, dtype=float)
+                    
+                    self.y_styles[gewaehlte_spalte] = {
+                        "color": self.plot_color.name() if len(self.y_dict) == 1 else "#ff7f0e",
+                        "linestyle": "",  # "" bedeutet kein Strich
+                        "markerstyle": "o",
+                        "markersize": 7,
+                        "label": gewaehlte_spalte,
+                        "y_err": None
+                    }
+                    
+                    # ComboBox aktualisieren
+                    self.aktive_y_combo.blockSignals(True)
+                    # Falls vorher "No Data" drin stand, erst leeren
+                    if self.aktive_y_combo.count() == 1 and "No Data" in self.aktive_y_combo.itemText(0):
+                        self.aktive_y_combo.clear()
+                    self.aktive_y_combo.addItem(gewaehlte_spalte)
+                    self.aktive_y_combo.blockSignals(False)
+
+                    # Legende und Header setzen
+                    if len(self.y_dict) == 1:
+                        self.legende_input.blockSignals(True)
+                        self.legende_input.setText(gewaehlte_spalte)
+                        self.legende_input.blockSignals(False)
+
+                    self.datentabelle.setHorizontalHeaderItem(col, QTableWidgetItem(gewaehlte_spalte))
+                else:
+                    gewaehlte_spalte = spalten_namen[col - 1]
+
+                # Wert ins Array schreiben
                 if not self.y_dict[gewaehlte_spalte].flags.writeable:
                     self.y_dict[gewaehlte_spalte] = self.y_dict[gewaehlte_spalte].copy()
                 self.y_dict[gewaehlte_spalte][row] = neuer_wert
 
-            # Gültig: Weißer Hintergrund
+                # --- Prüfen, ob die Spalte jetzt komplett leer gelöscht wurde ---
+                if np.isnan(self.y_dict[gewaehlte_spalte]).all():
+                    del self.y_dict[gewaehlte_spalte]
+                    if gewaehlte_spalte in self.y_styles:
+                        del self.y_styles[gewaehlte_spalte]
+
+                    idx = self.aktive_y_combo.findText(gewaehlte_spalte)
+                    if idx != -1:
+                        self.aktive_y_combo.blockSignals(True)
+                        self.aktive_y_combo.removeItem(idx)
+                        self.aktive_y_combo.blockSignals(False)
+
+                    self.datentabelle.setHorizontalHeaderItem(col, QTableWidgetItem(f"Y{col}"))
+
+                    # War das die letzte Y-Spalte?
+                    if not self.y_dict:
+                        self.x_data = None
+                        self.current_x = None
+                        
+                        t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
+                        self.aktive_y_combo.blockSignals(True)
+                        self.aktive_y_combo.clear()
+                        self.aktive_y_combo.addItem(t.get("y_data_combo", "No Data available"))
+                        self.aktive_y_combo.blockSignals(False)
+                        
+                        self.legende_input.blockSignals(True)
+                        self.legende_input.clear()
+                        self.legende_input.blockSignals(False)
+                    else:
+                        self.lade_stil_in_gui()
+
+            # Hintergrund weiß setzen
             item.setBackground(QColor("#ffffff"))
-            
-            # Signale vor dem Plotten wieder freigeben
             self.datentabelle.blockSignals(False)
 
-            # 2. Plot live aktualisieren!
+            # Plot neu zeichnen
             self.plot_aktualisieren()
 
         except ValueError:
-            # Ungültige Zahl: Rot markieren
             item.setBackground(QColor("#ffcccc"))
             self.datentabelle.blockSignals(False)
             
         except Exception as e:
             self.datentabelle.blockSignals(False)
-            print(f"Fehler bei Zelländerung: {e}")
+            print(f"Fehler bei Zelländerung: {type(e).__name__}: {e}")
+
+    def reset_everything(self):
+        # 1. Datenstrukturen komplett leeren
+        self.x_data = None
+        self.x_data_raw = None
+        self.x_err = None
+        self.y_err = None
+        self.current_x = None
+        self.current_y = None
+        self.y_dict = {}
+        self.y_dict_raw = {}
+        self.y_styles = {}
+
+        # 2. Dropdown für die Datenreihen zurücksetzen
+        t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
+        self.aktive_y_combo.blockSignals(True)
+        self.aktive_y_combo.clear()
+        self.aktive_y_combo.addItem(t.get("y_data_combo", "No Data available"))
+        self.aktive_y_combo.blockSignals(False)
+
+        # 3. Textfelder leeren
+        self.legende_input.blockSignals(True)
+        self.legende_input.clear()
+        self.legende_input.blockSignals(False)
+
+        self.polyfit_input_label.blockSignals(True)
+        self.polyfit_input_label.clear()
+        self.polyfit_input_label.setEnabled(False)
+        self.polyfit_input_label.blockSignals(False)
+
+        # 4. Fit- und Extrema-Auswahl zurücksetzen
+        self.polyfit_combo.blockSignals(True)
+        self.polyfit_combo.setCurrentIndex(0)
+        self.polyfit_combo.blockSignals(False)
+
+        self.showmaxmin_combo.blockSignals(True)
+        self.showmaxmin_combo.setCurrentIndex(0)
+        self.showmaxmin_combo.setEnabled(False)
+        self.showmaxmin_combo.blockSignals(False)
+        self.save_maxmin.setEnabled(False)
+
+        # 5. Datentabelle leeren und auf 50x10 Standardraster zurücksetzen
+        self.datentabelle.blockSignals(True)
+        self.datentabelle.clear()
+        self.datentabelle.setRowCount(50)
+        self.datentabelle.setColumnCount(10)
+        
+        # Header auf Standard beschriften (X, Y1, Y2, ...)
+        standard_header = ["X"] + [f"Y{i}" for i in range(1, 10)]
+        self.datentabelle.setHorizontalHeaderLabels(standard_header)
+        self.datentabelle.blockSignals(False)
+
+        # 6. Plot zurücksetzen (leert die Achse und setzt den Anfangstitel)
+        self.plot_aktualisieren()
+
+        QMessageBox.information(
+                    self, 
+                    "Reset", 
+                    ("Alle Daten wurden gelöscht und alle Einstellungen zurückgesetzt!" if self.aktuelle_sprache == "de" else "Succesfully reset all data and!" ))
+
+
+
 
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
