@@ -105,7 +105,7 @@ Sofern keine Messdaten geladen importiert wurden, ist es möglich, Daten in die 
 Die Option `Keine Daten geladen` verschwindet aus dem Auswahlfenster, sobald Daten über den Importierbutton importiert wurden.
 
 > [!TIP]
-> Bei wichtigen Datenmengen empfiehlt es sich, die Daten in einer CSV oder Excel zu protokollieren - die Daten, die manuell zur Tabelle in Protokollix hinzugefügt werden, können zwar über den Button `Datenmanipulation | Fehlerrechnung` als Exceldatei exportiert werden, angedacht ist das aber nicht unbedingt. 
+> Es empfiehlt sich nicht, Protokollix zu benutzen, um Messdaten in der eingebauten Tabelle direkt nach dem Messen zu Protokollieren - hierfür empfiehlt sich eine Excel Tabelle. Theoretisch können die Daten über den Button `Datenmanipulation | Fehlerrechnung` als Exceldatei exportiert werden, angedacht ist das aber nicht unbedingt. 
 
 ---
 
@@ -187,7 +187,7 @@ Direkt unter dem Auswahlmenü liegen die Zeile **Mathematische Formel (gerendert
 
 <p align="center">
   <img src="docs/Rendering.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
-  <em>Abbildung 7: Ein Feld dient der gerenderten Darstellung, eines der Eingabe.</em>
+  <em>Abbildung 8: Ein Feld dient der gerenderten Darstellung, eines der Eingabe.</em>
 </p>
 
 
@@ -198,7 +198,6 @@ Der integrierte Rechner nutzt symbolische Computeralgebra (SymPy). Beim Eingeben
 * Potenzen: `**` (z. B. `r**2` für $r^2$). Die `LaTeX` Notation `^`kann ebenfalls verwendet werden. Eine e-Funktion wird durch den Ausdruck `exp()`realisiert.
 * Funktionen: `sin(...)`, `cos(...)`, `sqrt(...)`, `exp(...)`, `log(...)`. `log(...)` berechnet hier den Zehnerlogarithmus ($\log_{10}$), während `ln(...)` für den natürlichen Logarithmus steht. Dies weicht zwar von gängigen Programmiersprachen-Konventionen ab, entspricht jedoch der vertrauten Tastenbelegung wissenschaftlicher Taschenrechner und der Schreibweise in der Vorlesung.
 * Numerische Ableitungen: `diff(y)` berechnet die numerische Ableitung `dy/dx`.
-
 
 > [!TIP]
 > Die Konstante $\pi$ wird durch `pi` eingeben, nicht durch `Pi`! 
@@ -214,6 +213,28 @@ Der integrierte Rechner nutzt symbolische Computeralgebra (SymPy). Beim Eingeben
 Das Programm bildet automatisch die partiellen Ableitungen:
 $$\Delta E_{\text{kin}} = \left| \frac{\partial E}{\partial m} \right| \Delta m + \left| \frac{\partial E}{\partial v} \right| \Delta v$$
 </details>
+
+#### Unsicherheiten 
+Ein Feature, dass **Protokollix** von vielen anderen Programmen abhebt, ist die Möglichkeit zur Fehlerrechnung. Mit jeder Variable, die im Bedienfeld eingegeben wird (Sowie automatisch für `X`und `Y`) werden 3 Felder generiert:
+* Eines für den Wert der Variable
+* Eines für die absolute Unsicherheit der Variable
+* Eines für die Digitsunsicherheit der Variable (ganzzahlig!)
+
+Im folgenden Beispiel wurden die Variablen `a`und `b`definiert und mit `y`multipliziert. $a = 1.5 , \Delta a = 0.01$, Digits(a) = 1, $b = 2 , \Delta b = 0.05$
+
+
+<p align="center">
+  <img src="docs/Unsicherheiten.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
+  <em>Abbildung 9: Ein Beispiel für die Unsicherheitsangabe, mit den Variablen a und b.</em>
+</p>
+
+
+Es ist auch möglich, Unsicherheiten zu importieren. Hier gilt wieder das Auswahl Prinzip von oben: Ist `Y-Daten`ausgewählt, so werden die Unsicherheiten als Y-Unsicherheiten betrachtet, ist `X-Daten`ausgewählt werden die Daten analog als X-Unsicherheiten betrachtet. Sollte eines davon der Fall sein, so wird das entsprechende Feld für die X bzw. die Y-Unsicherheiten automatisch gesperrt, um Konflikte zu vermeiden.
+
+<p align="center">
+  <img src="docs/ImportUnsicherheiten.png" alt="Die importierten Unsicherheiten" width="700"><br>
+  <em>Abbildung 10: Die Y-Unsicherheiten wurden über den "Importiere Y-Unsicherheiten aus Excel" importiert</em>
+</p>
 
 ---
 

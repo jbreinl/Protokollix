@@ -66,7 +66,7 @@ TRANSLATIONS = {
         "gf_rendered_ph": "Die gerenderte Formel erscheint hier...",
         "gf_formula_label": "Mathematische Formel:",
         "gf_formula_ph": "z. B. 4 * pi^2 * (m * V0) / (A^2 * p * tau^2)",
-        "gf_btn_excel": "Importiere Y-Unsicherheiten als Excel",
+        "gf_btn_excel": "Importiere Y-Unsicherheiten aus Excel",
         "gf_preview_table": "Ergebnis- & Datentabelle (Live-Vorschau):",
         "gf_val_ph": "Wert für {var} (z.B. 1.5 oder x)",
         "gf_err_ph": "Delta {var} (z.B. 0.01)",
