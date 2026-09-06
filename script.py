@@ -1354,90 +1354,102 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             return txt
 
     def berechne_groesstfehler(self, formel_text, werte_dict, unsicherheiten_dict, digit_unsicherheiten_dict, raw_texte_dict = None):
-        formel_sauber = formel_text.replace("^", "**") #Latex hochschreibweise integrierens
+        try:
+            formel_sauber = formel_text.replace("^", "**") #Latex hochschreibweise integrierens
 
-        #Neu: Ableitungen berechnen
+            #Neu: Ableitungen berechnen
 
-        if "diff(" in formel_sauber and self.x_data is not None and "y" in werte_dict:
-            y_arr = werte_dict["y"]
-            x_arr = werte_dict["x"] if "x" in werte_dict else self.x_data
+            if "diff(" in formel_sauber and self.x_data is not None and "y" in werte_dict:
+                y_arr = werte_dict["y"]
+                x_arr = werte_dict["x"] if "x" in werte_dict else self.x_data
 
-            dy_dx = np.gradient(y_arr, x_arr)
-            formel_sauber = re.sub(r"diff\s*\(\s*y\s*(,\s*x\s*)?\)", "_dydx", formel_sauber)
-            werte_dict["_dydx"] = dy_dx
-            unsicherheiten_dict["_dydx"] = 0.0  # Ableitung selbst hat vorerst 0 Fehler
+                dy_dx = np.gradient(y_arr, x_arr)
+                formel_sauber = re.sub(r"diff\s*\(\s*y\s*(,\s*x\s*)?\)", "_dydx", formel_sauber)
+                werte_dict["_dydx"] = dy_dx
+                unsicherheiten_dict["_dydx"] = 0.0  # Ableitung selbst hat vorerst 0 Fehler
 
 
 
-        expr = sp.parse_expr(formel_sauber, transformations=standard_transformations + (implicit_multiplication_application,))
+            # Funktionen für SymPy registrieren:
+            lokale_symbole = {
+                "log":  lambda arg: sp.log(arg, 10),
+                "ln": sp.log
+            }
 
-        #Variablen im Ausdruck erkennen (ohne pi etc.)
-        variablen_symbole = [s for s in expr.free_symbols if s.name != "pi"]
+            expr = sp.parse_expr(formel_sauber,local_dict=lokale_symbole, transformations=standard_transformations + (implicit_multiplication_application,))
 
-        f_num = sp.lambdify(variablen_symbole, expr, modules = ["numpy"])
-        
-        #Argumente in passende Reihenfolg für lambidy zusammenstellen und einem dictionary hinzufügen
+            #Variablen im Ausdruck erkennen (ohne pi etc.)
+            variablen_symbole = [s for s in expr.free_symbols if s.name != "pi"]
 
-        args_werte = [werte_dict[s.name] for s in variablen_symbole]
-        funktions_wert = f_num(*args_werte) #ruft f_num von oben auf und wertet die Funktion aus
+            f_num = sp.lambdify(variablen_symbole, expr, modules = ["numpy"])
+            
+            #Argumente in passende Reihenfolg für lambidy zusammenstellen und einem dictionary hinzufügen
 
-        #Größtfehler berechnen: Formel siehe Skript
+            args_werte = [werte_dict[s.name] for s in variablen_symbole]
+            funktions_wert = f_num(*args_werte) #ruft f_num von oben auf und wertet die Funktion aus
 
-        gesamt_fehler = 0.0
-        for sym in variablen_symbole:
-            var_name = sym.name
+            #Größtfehler berechnen: Formel siehe Skript
 
-            #Partielle Ableitung bilden: df / d(var
-            partielle_ableitung = sp.diff(expr, sym) #Bildet die symbolische partielle ableitung der Formel "expr" nach der aktuellen Variable "sym"
-            df_num = sp.lambdify(variablen_symbole, partielle_ableitung, modules = ["numpy"]) #Nimmt den symboplischen Ausdruck und übersetzt ihn in eine Numpy Funktion
+            gesamt_fehler = 0.0
+            for sym in variablen_symbole:
+                var_name = sym.name
 
-            #Betrag der Ableitung an der stelle auswerten
-            abl_wert = np.abs(df_num(*args_werte)) #Jetzt werden die Messwerte eingesetzt, * entpackt eine Liste
-            u_var = unsicherheiten_dict[var_name]
-            val_var = werte_dict[var_name]
+                #Partielle Ableitung bilden: df / d(var
+                partielle_ableitung = sp.diff(expr, sym) #Bildet die symbolische partielle ableitung der Formel "expr" nach der aktuellen Variable "sym"
+                df_num = sp.lambdify(variablen_symbole, partielle_ableitung, modules = ["numpy"]) #Nimmt den symboplischen Ausdruck und übersetzt ihn in eine Numpy Funktion
 
-            #Digit schrittweise ermitteln
-            digits_count = digit_unsicherheiten_dict.get(var_name, 0.0) #Standard-Rückfallwert 0.0
-            # Digit-Schrittweite ermitteln
-            if digits_count != 0.0:
-                s_eingabe = raw_texte_dict.get(var_name, "").strip().replace(",", ".")
-# Wenn der Nutzer z. B. "40.0" oder "1.25" getippt hat:
-                if s_eingabe and s_eingabe.lower() not in ["x", "y"]:
-                    if "." in s_eingabe:
-                      stellen = len(s_eingabe.split(".")[1])
-                      digit_step = 10.0 ** (-stellen)
+                #Betrag der Ableitung an der stelle auswerten
+                abl_wert = np.abs(df_num(*args_werte)) #Jetzt werden die Messwerte eingesetzt, * entpackt eine Liste
+                u_var = unsicherheiten_dict[var_name]
+                val_var = werte_dict[var_name]
+
+                #Digit schrittweise ermitteln
+                digits_count = digit_unsicherheiten_dict.get(var_name, 0.0) #Standard-Rückfallwert 0.0
+                # Digit-Schrittweite ermitteln
+                if digits_count != 0.0:
+                    s_eingabe = raw_texte_dict.get(var_name, "").strip().replace(",", ".")
+                # Wenn der Nutzer z. B. "40.0" oder "1.25" getippt hat:
+                    if s_eingabe and s_eingabe.lower() not in ["x", "y"]:
+                        if "." in s_eingabe:
+                            stellen = len(s_eingabe.split(".")[1])
+                            digit_step = 10.0 ** (-stellen)
+                        else:
+                            digit_step = 1.0
                     else:
-                      digit_step = 1.0
+                    # Für x/y: Schrittweite aus der eingegebenen Unsicherheit Δx bzw. Δy ableiten
+                        s_u = f"{u_var:.8f}".rstrip("0")
+                        if "." in s_u and len(s_u.split(".")[1]) > 0:
+                            stellen = len(s_u.split(".")[1])
+                            digit_step = 10.0 ** (-stellen)
+                        else:
+                            digit_step = 0.01
+
+                    digit_err = digit_step * digits_count
                 else:
-                  # Für x/y: Schrittweite aus der eingegebenen Unsicherheit Δx bzw. Δy ableiten
-                    s_u = f"{u_var:.8f}".rstrip("0")
-                    if "." in s_u and len(s_u.split(".")[1]) > 0:
-                        stellen = len(s_u.split(".")[1])
-                        digit_step = 10.0 ** (-stellen)
-                    else:
-                        digit_step = 0.01
+                    digit_err = 0.0
 
-                digit_err = digit_step * digits_count
-            else:
-               digit_err = 0.0
+                #Digits Unsicherheit dazurechnen zum Fehler
+                u_gesamt = u_var + digit_err
 
-            #Digits Unsicherheit dazurechnen zum Fehler
-            u_gesamt = u_var + digit_err
+                #Aufsummieren
+                gesamt_fehler+= abl_wert * u_gesamt
 
-            #Aufsummieren
-            gesamt_fehler+= abl_wert * u_gesamt
+            # FIX: Wenn der Funktionswert ein Array ist (z.B. x_data), aber der Fehler eine Zahl (z.B. 0.2),
+            # bringe den Fehler auf dieselbe Array-Form!
+            if isinstance(funktions_wert, np.ndarray) and isinstance(gesamt_fehler, (int, float, np.number)):
+                gesamt_fehler = np.full_like(funktions_wert, gesamt_fehler)
 
-        # FIX: Wenn der Funktionswert ein Array ist (z.B. x_data), aber der Fehler eine Zahl (z.B. 0.2),
-        # bringe den Fehler auf dieselbe Array-Form!
-        if isinstance(funktions_wert, np.ndarray) and isinstance(gesamt_fehler, (int, float, np.number)):
-            gesamt_fehler = np.full_like(funktions_wert, gesamt_fehler)
+            elif isinstance(funktions_wert, (int, float, np.number)):
+                if self.x_data is not None:
+                    funktions_wert = np.full_like(self.x_data, funktions_wert)
+                    gesamt_fehler = np.full_like(self.x_data, gesamt_fehler)
 
-        elif isinstance(funktions_wert, (int, float, np.number)):
-            if self.x_data is not None:
-                funktions_wert = np.full_like(self.x_data, funktions_wert)
-                gesamt_fehler = np.full_like(self.x_data, gesamt_fehler)
+            return funktions_wert, gesamt_fehler
+        except Exception as e:
+            print(f"Der Fehler wurde abgefangen: {e}")
+            return None, None
 
-        return funktions_wert, gesamt_fehler
+
 
     def oeffne_mittelwert_dialog(self):
         dialog = MittelwertDialog(parent = self, sprache = self.aktuelle_sprache)
