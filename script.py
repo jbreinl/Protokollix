@@ -98,7 +98,7 @@ TRANSLATIONS = {
         "btn_save_data": "Daten speichern",
         "lbl_legendposition": "Legenden Position:",
         "lbl_dpi": "DPI beim Export:",
-        "lbl_datentabelle": "Datentabelle",
+        "lbl_datentabelle": "Datentabelle:",
         "btn_deletealldata": "Alle Daten löschen"
 
     },
@@ -168,7 +168,7 @@ TRANSLATIONS = {
         "btn_save_data": "Save Data",
         "lbl_legendposition": "Legend Position:",
         "lbl_dpi": "DPI for Export:",
-        "lbl_datentabelle": "Data Table",
+        "lbl_datentabelle": "Data:",
         "btn_deletealldata": "Delete Data"
         
     }
@@ -564,31 +564,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.datei_button.setFont(font_importbutton)
 
 
-        #Export Einstellungen:
-        self.lbl_dpi = QLabel()
-        tab_import_export_layout.addWidget(self.lbl_dpi)
-
-        self.slider_dpi = QSlider(Qt.Orientation.Horizontal)
-        self.slider_dpi.setRange(0,4)
-        self.slider_dpi.setSingleStep(1)
-        self.slider_dpi.setTickPosition(QSlider.TickPosition.TicksBelow)
-        self.slider_dpi.setTickInterval(1)
-        self.slider_dpi.setValue(2)
-        self.slider_dpi.setEnabled(True)
-        tab_import_export_layout.addWidget(self.slider_dpi)
-
-        layout_dpi_labels = QHBoxLayout()
-        layout_dpi_labels.setContentsMargins(0, 0, 0, 0)
-        for val in ["100", "150", "300", "600", "1200"]:
-            lbl = QLabel(val)
-            lbl.setStyleSheet("font-size: 9px; color: #666666;")
-            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout_dpi_labels.addWidget(lbl)
-
-        tab_import_export_layout.addLayout(layout_dpi_labels)
-
-
-            #Button zum Zurücksetzen der Daten
+        #Button zum Zurücksetzen der Daten
 
 
         layout_reset_data = QHBoxLayout()
@@ -614,6 +590,30 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         font.setBold(True)
         self.save_button.setFont(font)
         tab_import_export_layout.addWidget(self.save_button) 
+
+
+        #Export Einstellungen:
+        self.lbl_dpi = QLabel()
+        tab_import_export_layout.addWidget(self.lbl_dpi)
+
+        self.slider_dpi = QSlider(Qt.Orientation.Horizontal)
+        self.slider_dpi.setRange(0,4)
+        self.slider_dpi.setSingleStep(1)
+        self.slider_dpi.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.slider_dpi.setTickInterval(1)
+        self.slider_dpi.setValue(2)
+        self.slider_dpi.setEnabled(True)
+        tab_import_export_layout.addWidget(self.slider_dpi)
+
+        layout_dpi_labels = QHBoxLayout()
+        layout_dpi_labels.setContentsMargins(0, 0, 0, 0)
+        for val in ["100", "150", "300", "600", "1200"]:
+            lbl = QLabel(val)
+            lbl.setStyleSheet("font-size: 9px; color: #666666;")
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout_dpi_labels.addWidget(lbl)
+
+        tab_import_export_layout.addLayout(layout_dpi_labels)
 
         tab_import_export_layout.addStretch() 
 

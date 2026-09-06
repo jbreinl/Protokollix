@@ -7,7 +7,7 @@
 ## Inhaltsverzeichnis
 - [Installation & Download](#installation--download)
 - [Schnellstart](#schnellstart)
-- [Datenformat (Excel / CSV)](#datenformat-excel--csv)
+- [Dateneinlese und Datenformat (Excel / CSV)](#dateneinlese-und-datenformat-excel--csv)
 - [Funktionen im Überblick](#funktionen-im-überblick)
 - [Größtfehler-Rechner (Syntax)](#größtfehler-rechner-syntax)
 - [Kontakt & Feedback](#kontakt--feedback)
@@ -46,7 +46,13 @@ Falls du Python bereits installiert hast oder den Quellcode anpassen möchtest:
 
 ## Dateneinlese und Datenformat (Excel / CSV)
 
-### Daten importieren über Dateien
+### Daten importieren über Dateien 
+
+Derzeit können entweder Excel oder CSV Dateien importiert werden - andere Dateitypen werden nicht unterstützt. Der Button zum Einlesen von Daten befindet sich im linken Menü im rechtesten Tab "Daten", wie in der Grafik ersichtlich:
+
+<img src="docs/Importbutton.png" alt="Screenshot des Importierbuttons" width="800" style="vertical-align: middle;">
+
+<br>
 Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebaut sein:
 
 * **Spalte 1:** X-Werte (Messzeit, Spannung, etc.)
@@ -59,13 +65,25 @@ Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebau
 | 2.0 | 0.51 | 2.38 |
 | 3.0 | 0.74 | 3.61 |
 
-Derzeit können entweder Excel oder CSV Dateien importiert werden - andere Dateitypen werden nicht unterstützt. Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, und zeigt zusätzlich beim Importieren nochmal das erwünschte Format an. 
+Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, und zeigt zusätzlich beim Importieren nochmal das erwünschte Format an. 
 
 > [!TIP]
 > Dezimaltrennzeichen: Sowohl Punkte (`1.25`) als auch Kommas (`1,25`) werden beim Einlesen automatisch erkannt und konvertiert.
 
 ### Daten importieren durch die eingebaute Tabellenfunktion
 
+Zusätzlich is es für schnelle Tests und Änderungen möglich, Daten über die eingebaute Tabellenansicht zu erstellen. Diese befindet sich ebenfalls im `Daten-Tab`, links neben dem Plot:
+
+<img src="docs/Datentabelle.png" alt="Screenshot der Datentabelle im Programm" width="800" style="vertical-align: middle;">
+
+Sofern keine Messdaten geladen importiert wurden, ist es möglich, Daten in die Tabelle einzugeben. Sollte dort ausversehen ein Fehler gemacht werden, also z.B. ein X-Wert oder ein Y-Wert gelöscht oder vergessen werden, so fängt das Programm den Fehler automatisch ab und der entsprechende Punkt im Plot verschwindet. Nachdem man Daten auf diese Weise hinzugefügt hat, sollte noch im Zentralen Messdaten Auswahlfenster unter dem Tab **Allgemeines** der neu hinzugefügte Datensatz ausgewählt werden:
+
+<img src="docs/Aktiverdatensatz.png" alt="Datensatz Selector" width="800" style="vertical-align: middle;">
+
+Die Option `Keine Daten geladen` verschwindet aus dem Auswahlfenster, sobald Daten über den Importierbutton importiert wurden.
+
+> [!TIP]
+> Bei wichtigen Datenmengen empfiehlt es sich, die Daten in einer CSV oder Excel zu protokollieren - die Daten, die manuell zur Tabelle in Protokollix hinzugefügt werden, können zwar über den Button `Datenmanipulation | Fehlerrechnung` als Exceldatei exportiert werden, angedacht ist das aber nicht unbedingt. 
 
 ---
 
