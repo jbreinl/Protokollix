@@ -307,6 +307,52 @@ Ist man fertig mit den Berechnungen, können die nun neuen X- oder Y-Daten auf d
 > Will man also sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so muss man den Größtfehlerrechner zwei Mal aufrufen - einmal X-Daten oben auswählen, `OK` drücken, im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder `OK` drücken. 
 
 
+### Mittelwert-Rechner
+
+Wiederholungsmessungen derselben physikalischen Größe erfordern im Laboralltag häufig eine statistische Auswertung über den arithmetischen Mittelwert und die empirische Standardabweichung. Ein Klick auf den Button **Mittelwert** öffnet das separate Auswertungsfenster.
+
+<p align="center">
+  <img src="docs/Mittelwertrechner.png" alt="Der Mittelwert-Dialog" width="600"><br>
+  <em>Abbildung 11: Das Dialogfenster des Mittelwert-Rechners.</em>
+</p>
+
+---
+#### Funktionsweise & Berechnung
+
+Der Mittelwert-Rechner ermittelt automatisch die statistischen Kenngrößen nach den Standardformeln der Fehlerrechnung:
+
+* **Arithmetischer Mittelwert ($\bar{x}$):**
+  $$\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i$$
+* **Empirische Standardabweichung der Einzelmessung ($s_x$):** Streuung der Einzelwerte um den Mittelwert.
+  $$s_x = \sqrt{\frac{1}{n - 1} \sum_{i=1}^{n} (x_i - \bar{x})^2}$$
+* **Vertrauensbereich / Unsicherheit des Mittelwerts ($s_{\bar{x}}$):** Der tatsächliche Fehler des Ergebnisses, der mit zunehmender Messungsanzahl $n$ kleiner wird:
+  $$s_{\bar{x}} = \frac{s_x}{\sqrt{n}}$$
+
+---
+#### Dateneingabe: Datei-Import oder manuelle Tabelle
+
+Messwerte können auch hier wieder auf zwei Wegen übergeben werden:
+
+1. **Import via Excel/CSV:** Über den Import-Button im Dialog können gezielt Dateien eingelesen werden, die reine Messreihen enthalten. Unterstützt werden auch mehrere Spalten gleichzeitig, sodass verschiedene Messreihen in einem Durchgang analysiert werden. Das benötigte Format wird direkt beim Einlesen angezeigt. 
+2. **Manuelle Eingabe:** Ähnlich wie im Hauptprogramm steht eine direkte Tabellenansicht bereit, in die Messwerte zeilenweise eingetragen oder aus der Zwischenablage eingefügt werden können.
+
+> [!TIP]
+> Über den Button `Mittelwerte als Excel speichern` können beliebig viele gleichzeitig berechnete Mittelwerte gespeichert werden - was praktisch sein kann, um diese im Anschluss z.B. als neue Daten im Größtfehlerrechner zu laden. 
+
+<details>
+<summary><b>Beispiel anzeigen: Mittelwert von importierten Messwerten berechnen</b></summary>
+
+
+Im folgenden Beispiel wurden mehrere Mittelwerte gleichzeitig berechnet:
+
+<p align="center">
+  <img src="docs/Mittelwertrechner_items.png" alt="Der Mittelwert-Dialog" width="700"><br>
+  <em>Abbildung 11: Das Dialogfenster des Mittelwert-Rechners.</em>
+</p>
+
+</details>
+
+
 ## Kontakt & Feedback
 
 Gefällt dir das Tool oder hast du einen Fehler gefunden?
