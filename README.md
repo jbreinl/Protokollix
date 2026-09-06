@@ -8,20 +8,18 @@
 - [Installation & Download](#installation--download)
   - [Option 1: Fertige Anwendung](#option-1-fertige-anwendung-empfohlen--kein-python-nötig)
   - [Option 2: Aus dem Quellcode ausführen](#option-2-direkt-aus-dem-quellcode-ausführen-python-erforderlich)
-
 - [Schnellstart](#schnellstart)
 - [Dateneinlese und Datenformat (Excel / CSV)](#dateneinlese-und-datenformat-excel--csv)
   - [Daten importieren über Dateien](#daten-importieren-über-dateien)
   - [Daten importieren über Tabellenfunktion](#daten-importieren-mithilfe-der-eingebauten-tabellenfunktion)
   - [Daten exportieren](#daten-exportieren)
-  
 - [Grafische Manipulationen im Überblick](#grafische-manipulationen-im-überblick)
 - [Mathematische Manipulationen im Überblick](#mathematische-manipulationen-im-überblick)
   - [Ausgleichskurve / Fit](#ausgleichskurvefit)
   - [Größtfehler-Rechner](#größtfehler-rechner)
     - [Auswahlmenü für die Daten](#auswahlmenü-für-die-daten)
     - [Eingabezeile & Formelsyntax](#eingabezeile)
-    - [Unsicherheiten & Digits](#unsicherheiten)
+    - [Unsicherheiten](#unsicherheiten)
     - [Ergebnis- & Datentabelle](#ergebnis----datentabelle)
     - [Anwenden und Zurücksetzen der Änderungen](#anwenden-und-zurücksetzen-der-änderungen)
 - [Kontakt & Feedback](#kontakt--feedback)
@@ -263,14 +261,12 @@ Deine Excel-Datei enthält Zeit $t$ (Spalte 1) und Auslenkung/Winkel $\varphi$ (
   <img src="docs/Phasenraum.png" alt="Ableitung der Winkelauslenkung" width="700"><br>
   <em>Abbildung 9: Um den Phasenraum zu erhalten, müssen die Y-Messdaten (Winkelauslenkung) numerisch abgeleitet werden.</em>
 </p>
-
-
-
-
-
 </details>
+
+
 ---
 ### Unsicherheiten 
+
 Ein Feature, dass **Protokollix** von vielen anderen Programmen abhebt, ist die Möglichkeit zur Fehlerrechnung. Mit jeder Variable, die im Bedienfeld eingegeben wird (Sowie automatisch für `X`und `Y`) werden 3 Felder generiert:
 * Eines für den Wert der Variable
 * Eines für die absolute Unsicherheit der Variable
@@ -301,7 +297,7 @@ Ganz unten im Größtfehlermenü befindet sich die Live-Vorschau der Daten, die 
 * `X-Data` enthält die Messwerte auf der X-Achse
 * `Y-Data` enthält die Messwerte auf der Y-Achse
 * `Ergebnis f`ist eine Kurzschreibweise für *Ergebnis der Funktion f(...).* Hiermit sind schlicht die neu berechneten Werte gemeint - `Ergebnis f` kann also je nachdem, was oben unter `Ziel der Berechnung`ausgewählt ist die bearbeiteten X-Daten, die bearbeiteten Y-Daten oder die bearbeiteten "Einzelne Datenspalte" Werte meinen. 
-* `$\Delta$ f` bezeichnet die berechnete Unsicherheit von *f(...)* .
+* `Delta f` bezeichnet die berechnete Unsicherheit von *f(...)* .
 
 ---
 #### Anwenden und Zurücksetzen der Änderungen
