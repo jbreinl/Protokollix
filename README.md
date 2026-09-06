@@ -1,6 +1,6 @@
 # Protokollix 📊
 
-**Protokollix** ist ein leichtgewichtiges Desktop-Werkzeug zur schnellen Datenauswertung, interaktiven Plot-Erstellung und automatisierten Größtfehlerberechnung – optimiert für physikalische Praktika und wissenschaftliche Laborberichte. Es wurde in erster Linie entwickelt, um Zeit bei der Versuchsauswertung zu sparen. 
+**Protokollix** ist ein leichtgewichtiges Desktop-Werkzeug zur schnellen Datenauswertung, interaktiven Plot-Erstellung und automatisierten Größtfehlerberechnung – optimiert für physikalische Praktika und wissenschaftliche Laborberichte, entwickelt, um Zeit bei der Auswertung zu sparen. 
 
 ---
 
@@ -9,6 +9,7 @@
   - [Option 1: Fertige Anwendung](#option-1-fertige-anwendung-empfohlen--kein-python-nötig)
   - [Option 2: Aus dem Quellcode ausführen](#option-2-direkt-aus-dem-quellcode-ausführen-python-erforderlich)
 - [Schnellstart](#schnellstart)
+- [Sprache auswählen](#sprache-auswählen)
 - [Dateneinlese und Datenformat (Excel / CSV)](#dateneinlese-und-datenformat-excel--csv)
   - [Daten importieren über Dateien](#daten-importieren-über-dateien)
   - [Daten importieren über Tabellenfunktion](#daten-importieren-mithilfe-der-eingebauten-tabellenfunktion)
@@ -22,6 +23,9 @@
     - [Unsicherheiten](#unsicherheiten)
     - [Ergebnis- & Datentabelle](#ergebnis----datentabelle)
     - [Anwenden und Zurücksetzen der Änderungen](#anwenden-und-zurücksetzen-der-änderungen)
+  - [Mittelwert-Rechner](#mittelwert-rechner)
+  - [Funktionsweise & Berechnung](#funktionsweise--berechnung)
+
 - [Kontakt & Feedback](#kontakt--feedback)
 
 ---
@@ -52,23 +56,22 @@ Falls du Python bereits installiert hast oder den Quellcode anpassen möchtest:
 1. Klicke auf **„Öffne Excel / CSV“** und wähle deine Messdatei aus.
 2. Wähle im rechten Bedienfeld unter **Data** die gewünschte Y-Messreihe aus.
 3. Passe Achsenbeschriftungen, Skalierung (linear/logarithmisch) und Kurvenanpassungen (z. B. Polynom- oder Exponential-Fit) an.
-4. Exportiere das fertige Diagramm über **„Save Plot“** als hochauflösende PDF- oder PNG-Grafik für dein Protokoll.
+4. Manipuliere X- und Y-Daten beliebig im Größtfehlerrechner und berechne Mittelwerte mithilfe des Mittelwertrechners. 
+5. Exportiere das fertige Diagramm über **„Save Plot“** als hochauflösende PDF- oder PNG-Grafik für dein Protokoll.
+
+
 
 ---
+## Sprache auswählen
+Protokollix unterstützt sowohl Deutsch als auch Englisch. Die Sprache kann im entsprechenden Reiter `Bearbeiten` ganz oben am Bildschirm geändert werden. Eine Sprachänderung ist jederzeit während das Programm läuft möglich, einzig interne Fenster wie der Mittelwertrechner und der Größtfehlerrechner akzeptieren eine neue Sprache nur, während sie geschlossen sind / erneut geöffnet werden nach dem Sprachwechsel.  
 
+---
 ## Dateneinlese und Datenformat (Excel / CSV)
 
+---
 ### Daten importieren über Dateien 
 
-
-Derzeit können entweder Excel oder CSV Dateien importiert werden - andere Dateitypen werden nicht unterstützt. Der Button zum Einlesen von Daten befindet sich im linken Menü im rechtesten Tab "Daten", wie in der Grafik ersichtlich:
-
-<p align="center">
-  <img src="docs/Importbutton.png" alt="Protokollix Hauptansicht" width="800"><br>
-  <em>Abbildung 1: Der Import-Button.</em>
-</p>
-
-<br>
+Derzeit können entweder Excel oder CSV Dateien importiert werden - andere Dateitypen werden nicht unterstützt. Der Button zum Einlesen von Daten befindet sich im linken Menü im rechtesten Tab **Daten**. 
 Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebaut sein:
 
 * **Spalte 1:** X-Werte (Messzeit, Spannung, etc.)
@@ -100,7 +103,7 @@ Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, u
 Neben der Möglichkeit, Dateien zu laden, ist für kleine Datenmengen und schnelle Änderungen möglich, Messdaten manuell über die eingebaute Tabellenansicht einzufügen. Diese befindet sich ebenfalls im `Daten-Tab`, links neben dem Plot, wie folgend abgebildet: 
 <p align="center">
   <img src="docs/Datentabelle.png" alt="Protokollix Hauptansicht" width="700"><br>
-  <em>Abbildung 2: Die integrierte Tabelle zur Dateneingabe und Manipulation</em>
+  <em>Abbildung 1: Die integrierte Tabelle zur Dateneingabe und Manipulation</em>
 </p>
 
 <br>
@@ -109,7 +112,7 @@ Sofern keine Messdaten importiert wurden, ist es möglich, Daten in die Tabelle 
 
 <p align="center">
   <img src="docs/Aktiverdatensatz.png" alt="Protokollix Hauptansicht" width="700"><br>
-  <em>Abbildung 3: Der Aktive Datensatz muss im Anschluss über ein kleines Menü ausgewählt werden. </em>
+  <em>Abbildung 2: Der Aktive Datensatz muss im Anschluss über ein kleines Menü ausgewählt werden. </em>
 </p>
 
 <br>
@@ -122,7 +125,7 @@ Die Option `Keine Daten geladen` verschwindet aus dem Auswahlfenster, sobald Dat
 ---
 ### Daten exportieren
 
-Der Plot kann jederzeit über den `Plot speichern unter...` Button exportiert werden. Hierbei kann zwischen `.png`, `.jpg`, `.svg` und `.pdf` -Datei gewählt werden. Nach dem Anklicken öffnet sich ein Fenster, der User wird nach dem gewünschten Speicherort gefragt und kann den Export mit `save`bestätigen. Es besteht ebenfalls die Möglichkeit, (bearbeitete) Messdaten zu exportieren - mehr dazu unter [Größtfehler-Rechner](#größtfehler-rechner). 
+Der Plot kann jederzeit über den `Plot speichern unter...` Button exportiert werden. Hierbei kann zwischen `.png`, `.jpg`, `.svg` und `.pdf` -Datei gewählt werden. Nach dem Anklicken öffnet sich ein Fenster, der User wird nach dem gewünschten Speicherort gefragt und kann den Export mit `save`bestätigen. Es besteht ebenfalls die Möglichkeit, (bearbeitete) Messdaten zu exportieren - mehr dazu unter [Größtfehler-Rechner](#größtfehler-rechner). Außerdem kann mittels eines Schiebereglers der DPI-Wert (Dots per inch) auf vordefinierte Standardwerte gestellt werden. 
 
 ---
 ## Grafische Manipulationen im Überblick
@@ -140,7 +143,7 @@ Ein mögliches Beispiel für die verschiedenen Einstellungsmöglichkeiten könnt
 
 <p align="center">
   <img src="docs/schwingung.png" alt="Bild einer gedämpften Schwingung" width="700"><br>
-  <em>Abbildung 4: Ein Beispiel für ein Plot, der mit Protokollix erstellt wurde.</em>
+  <em>Abbildung 3: Ein Beispiel für ein Plot, der mit Protokollix erstellt wurde.</em>
 </p>
 
 Viele der Funktionen sind recht selbst erklärend, aufgrund der unendlichen Anzahl an Kombinationsmöglichkeiten wurde auf weitere Beispielbilder verzichtet.
@@ -163,7 +166,7 @@ Häufig ist es in Versuchen nötig, einen Fit durch Messdaten zu legen. In Proto
 
 <p align="center">
   <img src="docs/Fits.png" alt="Protokollix Hauptansicht" width="700"><br>
-  <em>Abbildung 5: In einem Dropdown Menü lässt sich der gewünschte Fit einfach auswählen.</em>
+  <em>Abbildung 4: In einem Dropdown Menü lässt sich der gewünschte Fit einfach auswählen.</em>
 </p>
 <br>
 
@@ -172,7 +175,7 @@ Ein Fit kann jederzeit gelegt werden. Sobald eine Fitfunktion ausgewählt wurde,
 
 <p align="center">
   <img src="docs/Fittest.png" alt="Protokollix Hauptansicht" width="700"><br>
-  <em>Abbildung 6: Ein Beispiel für einen möglichen Fit. Die Fitparameter sind oben rechts zu sehen.</em>
+  <em>Abbildung 5: Ein Beispiel für einen möglichen Fit. Die Fitparameter sind oben rechts zu sehen.</em>
 </p>
 
 > [!TIP]
@@ -185,7 +188,7 @@ Ein Fit kann jederzeit gelegt werden. Sobald eine Fitfunktion ausgewählt wurde,
 Durch das Klicken auf den Button **Datenmanipulation | Fehlerrechung** öffnet sich ein eigenes Fenster, der **Rechner**. Dieser enthält einige der wichtigsten Funktionen.
 <p align="center">
   <img src="docs/Rechner.png" alt="Der Rechner öffnet sich" width="700"><br>
-  <em>Abbildung 7: Durch Klicken des Buttons öffnet sich der Rechner.</em>
+  <em>Abbildung 6: Durch Klicken des Buttons öffnet sich der Rechner.</em>
 </p>
 
 ---
@@ -216,7 +219,7 @@ Direkt unter dem Auswahlmenü liegen die Zeile **Mathematische Formel (gerendert
 
 <p align="center">
   <img src="docs/Rendering.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
-  <em>Abbildung 8: Ein Feld dient der gerenderten Darstellung, eines der Eingabe.</em>
+  <em>Abbildung 7: Ein Feld dient der gerenderten Darstellung, eines der Eingabe.</em>
 </p>
 
 
@@ -251,7 +254,7 @@ Deine Excel-Datei enthält Zeit $t$ (Spalte 1) und Auslenkung/Winkel $\varphi$ (
 
 <p align="center">
   <img src="docs/diff.png" alt="Ableitung der Winkelauslenkung" width="700"><br>
-  <em>Abbildung 9: Um den Phasenraum zu erhalten, müssen die Y-Messdaten (Winkelauslenkung) numerisch abgeleitet werden.</em>
+  <em>Abbildung 8: Um den Phasenraum zu erhalten, müssen die Y-Messdaten (Winkelauslenkung) numerisch abgeleitet werden.</em>
 </p>
 
 3. **Ergebnis:**
@@ -277,7 +280,7 @@ Im folgenden Beispiel wurden die Variablen `a`und `b`definiert und mit `y`multip
 
 <p align="center">
   <img src="docs/Unsicherheiten.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
-  <em>Abbildung 9: Ein Beispiel für die Unsicherheitsangabe, mit den Variablen a und b.</em>
+  <em>Abbildung 10: Ein Beispiel für die Unsicherheitsangabe, mit den Variablen a und b.</em>
 </p>
 
 
@@ -285,8 +288,9 @@ Es ist auch möglich, Unsicherheiten zu importieren. Hier gilt wieder das Auswah
 
 <p align="center">
   <img src="docs/ImportUnsicherheiten.png" alt="Die importierten Unsicherheiten" width="700"><br>
-  <em>Abbildung 10: Die Y-Unsicherheiten wurden über den "Importiere Y-Unsicherheiten aus Excel" importiert</em>
+  <em>Abbildung 11: Die Y-Unsicherheiten wurden über den "Importiere Y-Unsicherheiten aus Excel" importiert</em>
 </p>
+
 > [!TIP]
 > Natürlich ist es auch möglich, schrittweise zu arbeiten: So könnte man z.B. erst die Unsicherheiten für eine einzelne Messreihe zu berechnen (Mithilfe des `Nur Berechnen (Tabelle / Einzelwert)`-Buttons), diese anschließend zu exportieren, anschließend die usprünglichen X- und Y-Werte laden, und die eben berechneten Unsicherheiten über den `Importiere Unsicherheiten`-Button hinzuzufügen. Diese Vorgehensweise empfiehlt sich vor allem bei komplexeren Aufgabenstellungen.
 
@@ -306,14 +310,14 @@ Ist man fertig mit den Berechnungen, können die nun neuen X- oder Y-Daten auf d
 > [!TIP]
 > Will man also sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so muss man den Größtfehlerrechner zwei Mal aufrufen - einmal X-Daten oben auswählen, `OK` drücken, im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder `OK` drücken. 
 
-
+---
 ### Mittelwert-Rechner
 
 Wiederholungsmessungen derselben physikalischen Größe erfordern im Laboralltag häufig eine statistische Auswertung über den arithmetischen Mittelwert und die empirische Standardabweichung. Ein Klick auf den Button **Mittelwert** öffnet das separate Auswertungsfenster.
 
 <p align="center">
   <img src="docs/Mittelwertrechner.png" alt="Der Mittelwert-Dialog" width="600"><br>
-  <em>Abbildung 11: Das Dialogfenster des Mittelwert-Rechners.</em>
+  <em>Abbildung 12: Das Dialogfenster des Mittelwert-Rechners.</em>
 </p>
 
 ---
@@ -347,7 +351,7 @@ Im folgenden Beispiel wurden mehrere Mittelwerte gleichzeitig berechnet:
 
 <p align="center">
   <img src="docs/Mittelwertrechner_items.png" alt="Der Mittelwert-Dialog" width="700"><br>
-  <em>Abbildung 11: Das Dialogfenster des Mittelwert-Rechners.</em>
+  <em>Abbildung 13: Das Dialogfenster des Mittelwert-Rechners.</em>
 </p>
 
 </details>
