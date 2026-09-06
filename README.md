@@ -48,12 +48,12 @@ Falls du Python bereits installiert hast oder den Quellcode anpassen möchtest:
 ## Dateneinlese und Datenformat (Excel / CSV)
 
 ### Daten importieren über Dateien 
----
+
 
 Derzeit können entweder Excel oder CSV Dateien importiert werden - andere Dateitypen werden nicht unterstützt. Der Button zum Einlesen von Daten befindet sich im linken Menü im rechtesten Tab "Daten", wie in der Grafik ersichtlich:
 
 <p align="center">
-  <img src="docs/Importbutton.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="docs/Importbutton.png" alt="Protokollix Hauptansicht" width="800"><br>
   <em>Abbildung 1: Der Import-Button.</em>
 </p>
 
@@ -72,12 +72,12 @@ Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebau
 
 Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, und zeigt zusätzlich beim Importieren nochmal das erwünschte Format an. 
 
-> [!TIP]
+> [!TIPP]
 > Dezimaltrennzeichen: Sowohl Punkte (`1.25`) als auch Kommas (`1,25`) werden beim Einlesen automatisch erkannt und konvertiert.
 
 <br>
 
-> [!TIP]
+> [!TIPP]
 > Beim erstmaligen Einlesen der Mesdaten mithilfe des **Öffne Excel/CSV** Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion `find_peaks` aus der Bibliothek `SciPy`geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1-10 Sekunden dauer kann. 
 
 
