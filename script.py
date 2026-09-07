@@ -17,6 +17,8 @@ os.environ["QT_API"] = "pyside6"
 import matplotlib
 matplotlib.use("QtAgg")
 import matplotlib.ticker as ticker
+from matplotlib import mathtext
+mathtext_parser = mathtext.MathTextParser("path")
 
 # 2. PySide6 Imports
 from PySide6.QtCore import Qt
@@ -722,6 +724,17 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.btn_deletealldata.clicked.connect(self.reset_everything)
 
     def plot_aktualisieren(self):
+        v_titel = self.validiere_und_faerbe_input(self.titel_input)
+        v_x = self.validiere_und_faerbe_input(self.x_label_input)
+        v_y = self.validiere_und_faerbe_input(self.y_label_input)
+        v_legende = self.validiere_und_faerbe_input(self.legende_input)
+    
+
+        # Wenn auch nur ein Feld ungültig ist: sofort abbrechen!
+        if not (v_titel and v_x and v_y and v_legende):
+            return
+
+
 
         #Plotgröße updaten zu beginn
         w = self.figsize_x_input.value() # Bildgröße
@@ -736,11 +749,12 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
 
 
-        #Restliche Werte holen
+        #Restliche Werte holen - achtung, bei LaTeX Notation können sich errors einschleichen
+        
         titel_text = self.titel_input.text()
         x_text = self.x_label_input.text()
         y_text = self.y_label_input.text()
-        label = self.legende_input.text()
+
 
         x_min = self.x_min_input.value()
         x_max = self.x_max_input.value()
@@ -753,7 +767,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         fontsize = self.fontsize_slider.value()
         grid_aktiv = self.grid_checkbox.isChecked()  # Gibt True oder False zurück
         legend_pos = self.slider_legendposition.value()
-
+    
         #Beschriftungen
         # Übersetzungspaket für leere Achsenbeschriftungen holen
         t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
@@ -761,6 +775,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         default_x = t.get("default_x_axis", "X-Achse:")
         default_y = t.get("default_y_axis", "Y-Achse:")
 
+
+        # 1. LaTeX-Tippschutz: Wenn ein $ noch unvollständig ist (ungerade Anzahl), nicht sofort rendern!
+        
         # Beschriftungen setzen
         self.ax.set_title(titel_text if titel_text else default_title, fontsize=fontsize)
         self.ax.set_xlabel(x_text if x_text else default_x, fontsize=fontsize * 0.80)
@@ -879,6 +896,13 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
             fit_typ = self.polyfit_combo.currentData()
             polyfit_label = self.polyfit_input_label.text()
+            #Absicherung gegen falsche Latex eingaben:
+            v_fit = self.validiere_und_faerbe_input(self.polyfit_input_label)
+            if not v_fit:
+                return
+            if not self.pruefe_latex(polyfit_label): # Wichtige
+                return
+
 
             if fit_typ is not None and 'y_geplottet' in locals():
                 try:
@@ -968,10 +992,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         if self.showmaxmin_combo.currentData() in ("locmax", "locmin"):
             self.ax.plot(maxmin_xval, maxmin_yval, c="red", markersize=10, marker="+", linestyle="")
 
-
-
-
+        
         self.canvas.draw_idle()
+    
 
     def choose_color(self):
         color = QColorDialog.getColor(self.plot_color, self, "Farbe für Plot auswählen")
@@ -1332,7 +1355,34 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
     def model_saettigung(x, A, B):
         return A * (1 - np.exp(-B * x))
 
-    
+    @staticmethod
+    def pruefe_latex(text):
+        """Prüft im Speicher ohne Zeichnen, ob der Text valides Matplotlib-LaTeX enthält."""
+        if not text:
+            return True
+        if "$" not in text:
+            return True
+        if text.count("$") % 2 != 0:
+            return False
+        try:
+            # WICHTIG: dpi mitgeben, sonst wirft parse() immer einen TypeError
+            mathtext_parser.parse(text, dpi=100)
+            return True
+        except Exception:
+            return False
+
+    def validiere_und_faerbe_input(self, widget):
+        """Färbt das QLineEdit zartrot ein, wenn die LaTeX-Syntax ungültig ist."""
+        text = widget.text()
+        ist_valide = self.pruefe_latex(text)
+        if ist_valide:
+            widget.setStyleSheet("")  # Standard-Design wiederherstellen
+        else:
+            # Zartes Rot als Hintergrund mit dezentem Rand
+            widget.setStyleSheet("background-color: #ffcccc; border: 1px solid #cc0000;")
+        return ist_valide
+
+
     def format_html_zahl(self, val, err=None):
             """Formatiert eine Zahl (und optional ihren Fehler) sauber für HTML mit x10^n."""
             def single_fmt(x):
