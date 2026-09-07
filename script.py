@@ -1,32 +1,51 @@
-# Fehler die es zu beheben gibt:
-#Was, wenn ich fehlerbalken für x und y haben will? Weil beide messgrößen behaftet sind? Funktioniert nicht. 
-# Es nimmt x werte und fehler für die y achse an. 
-#Ersetzt das ganze nun meine "y/x" Transformations-Box?
-
 import sys
 import os
+import re
 import pandas as pd
 import numpy as np
-import re
 import sympy as sp
-from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application
-# 1. Zwingt Matplotlib dazu, PySide6 statt PyQt6 zu verwenden!
-os.environ["QT_API"] = "pyside6"
+from sympy.parsing.sympy_parser import standard_transformations, implicit_multiplication_application
 
+# 1. Zwingt Matplotlib dazu, PySide6 statt PyQt6 zu verwenden
+os.environ["QT_API"] = "pyside6"
 
 import matplotlib
 matplotlib.use("QtAgg")
 import matplotlib.ticker as ticker
 from matplotlib import mathtext
-mathtext_parser = mathtext.MathTextParser("path")
-
-# 2. PySide6 Imports
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QColor, QAction, QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow, QRadioButton, QTableWidget, QTableWidgetItem, QWidget, QDialog, QFormLayout, QDialogButtonBox, QSlider, QCheckBox, QStyledItemDelegate, QTabWidget, QComboBox, QColorDialog,  QDoubleSpinBox, QMessageBox, QPushButton, QFileDialog, QLineEdit, QHBoxLayout, QVBoxLayout, QLabel  # H = Horizontal,  V = Vertikal
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
+# Globaler Parser für schnelles Syntax-Checking im Speicher
+mathtext_parser = mathtext.MathTextParser("path")
+
+# 2. PySide6 Imports (strikt bereinigt: nur tatsächlich instanziierte Klassen)
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QAction, QIcon
+from PySide6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QDialog,
+    QMessageBox,
+    QPushButton,
+    QFileDialog,
+    QLineEdit,
+    QLabel,
+    QComboBox,
+    QCheckBox,
+    QRadioButton,
+    QSlider,
+    QDoubleSpinBox,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QFormLayout,
+    QHBoxLayout,
+    QVBoxLayout,
+    QDialogButtonBox,
+    QColorDialog,
+)
 
 
 
@@ -89,7 +108,6 @@ TRANSLATIONS = {
         "Mittelwert_save": "Mittelwerte als Excel speichern",
         "lbl_color": "Linien und Markerfarbe:",
         "choose_color": "Farbe wählen",
-        "initial_title": "keine Daten geladen",
         "initial_title": "noch keine Daten geladen",
         "default_x_axis": "X-Achse:",
         "default_y_axis": "Y-Achse:",
@@ -662,17 +680,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.figure = Figure(figsize=(8, 6), dpi=100)# wieder zurücjändern zu 5,4
         self.canvas = FigureCanvas(self.figure)
 
-
-        #Löschen?
-        # 2. HIER DIREKT DIE CANVAS-GRÖSSE FIXIEREN (5 Zoll * 100 DPI = 500px, 4 Zoll * 100 DPI = 400px)
-        # Oder dynamisch über die Spinboxen:
-        w_start = int(self.figsize_x_input.value() * self.figure.dpi)
-        h_start = int(self.figsize_y_input.value() * self.figure.dpi)
-             
-
-        #Löschen?
-    
-
         # Ein Achsensystem (Axes) zur Figure hinzufügen
         self.ax = self.figure.add_subplot(1, 1, 1) #111 = Anzahl der Spalten, der Zeilen, Nummer des Plots im Raster
         self.initial_title = "noch keine Daten geladen"
@@ -962,7 +969,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     # Fit-Linie zeichnen
                     self.ax.plot(x_fit_smooth, y_fit_smooth, color="red", linestyle="--", label = polyfit_label)
 
-                except Exception as e:
+                except Exception:
                     self.polyfit_heading_label.setText("Fit fehlgeschlagen (Konvergenzfehler)")
             else:
                 self.polyfit_heading_label.setText("Ausgleichskurve / Fit:")
@@ -1165,7 +1172,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 self.y_styles = {}
                 self.aktive_y_combo.blockSignals(True)
                 self.aktive_y_combo.clear()
-                k = 0
 
                 for idx, spalten_name in enumerate(y_spalten_namen):
                     spalten_name = str(spalten_name)
@@ -1451,7 +1457,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 #Betrag der Ableitung an der stelle auswerten
                 abl_wert = np.abs(df_num(*args_werte)) #Jetzt werden die Messwerte eingesetzt, * entpackt eine Liste
                 u_var = unsicherheiten_dict[var_name]
-                val_var = werte_dict[var_name]
 
                 #Digit schrittweise ermitteln
                 digits_count = digit_unsicherheiten_dict.get(var_name, 0.0) #Standard-Rückfallwert 0.0
@@ -1851,11 +1856,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         return values[self.slider_dpi.value()]
 
     def update_datentabelle(self):
-        print("Test")
         if self.x_data is not None and self.y_dict:
             try: 
                 #Daten holen
-                x_daten = self.x_data
                 first_ycolumn = list(self.y_dict.values())[0]
                 n_rows = len(first_ycolumn)
                 n_columns = len(self.y_dict) + 1 # +1 für die X Daten - also X Spalte und alle Y Spalten
