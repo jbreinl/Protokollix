@@ -114,12 +114,13 @@ TRANSLATIONS = {
         "btn_xreset": "X-Daten zurücksetzen",
         "btn_yreset": "Y-Daten zurücksetzen",
         "mean_preview_table": "Daten/Ergebnistabelle",
-        "lbl_limitkommastellen": "Anzahl der Nachkommastellen der Limits:",
+        "lbl_limitkommastellen": "Anzahl an Nachkommastellen der Limits:",
         "btn_save_data": "Daten speichern",
         "lbl_legendposition": "Legenden Position:",
         "lbl_dpi": "DPI beim Export:",
         "lbl_datentabelle": "Datentabelle:",
-        "btn_deletealldata": "Alle Daten löschen"
+        "btn_deletealldata": "Alle Daten löschen",
+        "btn_save_maxmin" : "Speichere Maxima/Minima als Excel"
 
     },
     "en": {
@@ -189,7 +190,8 @@ TRANSLATIONS = {
         "lbl_legendposition": "Legend Position:",
         "lbl_dpi": "DPI for Export:",
         "lbl_datentabelle": "Data:",
-        "btn_deletealldata": "Delete Data"
+        "btn_deletealldata": "Delete Data",
+        "btn_save_maxmin" : "Save Maxima/Minima"
         
     }
 }
@@ -202,7 +204,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.aktuelle_sprache = "de" #Sprache festlegen
     # Fenstertitel und Anfangsgröße festlegen
         self.setWindowTitle("Protokollix - © 2026 Jakob Breinl")
-        self.setGeometry(100, 100, 1200, 800)
+        #self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 1250, 850)
 
         # Speicher für die geladenen Daten (anfangs leer)
         self.x_data = None
@@ -1673,6 +1676,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.btn_reset_ydata.setText(t["btn_yreset"])
         self.menu_hilfebutton.setToolTip(self.get_hilfetext())
         self.btn_deletealldata.setText(t["btn_deletealldata"])
+        self.save_maxmin.setText(t["btn_save_maxmin"])
 
         # 5. Labels & Placeholdernamen anpassen
         self.label_aktiverDatensatz.setText(f"<b>{t['lbl_active_ds']}</b>")
