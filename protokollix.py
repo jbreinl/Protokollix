@@ -3233,7 +3233,7 @@ if __name__ == "__main__": # Alles unter der if Abfrage wird nur dann ausgefsüh
 
     # Absoluten Pfad zur Bilddatei relativ zum Skript ermitteln
     basis_ordner = os.path.dirname(os.path.abspath(__file__))
-    icon_pfad = os.path.join(basis_ordner, "icon.png")
+    icon_pfad = os.path.join(basis_ordner, "assets", "icon.png")
 
     # Nur setzen, wenn die Datei wirklich existiert:
     if os.path.exists(icon_pfad):
