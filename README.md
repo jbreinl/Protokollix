@@ -275,7 +275,11 @@ Deine Excel-Datei enthält Zeit $t$ (Spalte 1) und Auslenkung/Winkel $\varphi$ (
 
 ### Unsicherheiten 
 
-Ein Feature, das **Protokollix** von vielen anderen Programmen abhebt, ist die Möglichkeit zur Fehlerrechnung. Mit jeder Variable, die im Bedienfeld eingegeben wird (sowie automatisch für `X` und `Y`), werden drei Felder generiert:
+Ein Feature, das **Protokollix** von vielen anderen Programmen unterscheidet, ist die Möglichkeit zur automatischen Fehlerrechnung. Diese basiert auf der Ableitungsmethode (Größtfehlermethode):
+$$\Delta f = \sum_i \left| \frac{\partial f}{\partial v_i} \right| \cdot \Delta v_i$$
+
+
+ Mit jeder Variable, die im Bedienfeld eingegeben wird (sowie automatisch für `X` und `Y`), werden drei Felder generiert:
 * Eines für den Wert der Variable
 * Eines für die absolute Unsicherheit der Variable
 * Eines für die Digitsunsicherheit der Variable (ganzzahlig!)

@@ -100,7 +100,7 @@ TRANSLATIONS = {
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "Ein Werkzeug zur schnellen Datenauswertung, Plot-Erstellung und Größtfehlerberechnung "
             "für physikalische Praktika und wissenschaftliche Berichte, entwickelt aus Langeweile in den Sommerferien :D .<br><br>"
-            "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, Pandas, Numpy, Matplotlib &amp; SymPy.</i> <br><br>"
+            "<i>Entwickelt mit Python unter Zuhilfenahme der Bibliotheken PySide6, SciPy, Pandas, Numpy, Matplotlib &amp; SymPy.</i> <br><br>"
             "Verbesserungssvorschläge, Programmfehler etc. bitte per Mail an <i> jakob.breinl@edu.uni-graz.at </i>"),
         "Mittelwert_title": "Mittelwert-Rechner",
         "Mittelwert_header": "Mittelwert & Standardabweichung berechnen",
@@ -169,8 +169,8 @@ TRANSLATIONS = {
             "<h2>Protokollix</h2>"
             "<b>© 2026 Jakob Breinl</b><br><br>"
             "A tool for fast data evaluation, plotting, and maximum error calculation "
-            "for physics lab courses and scientific reports, developed out of boredom during summer break. .<br><br>"
-            "<i>Developed with Python using the PySide6, Pandas, NumPy, Matplotlib &amp; SymPy libraries.</i> <br><br>"
+            "for physics lab courses and scientific reports, developed out of boredom during summer break. <br><br>"
+            "<i>Developed with Python using the PySide6, Pandas, SciPy, NumPy, Matplotlib &amp; SymPy libraries.</i> <br><br>"
             "Suggestions for improvement, bug reports, etc. please via email to <i>jakob.breinl@edu.uni-graz.at</i>"
         ),
         "Mittelwert_title": "mean calculator",
@@ -1042,9 +1042,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             self.y_max_input.setValue(float(max(y_vals) + randy))
 
     def load_file(self):
-
-        msgBox = QMessageBox(self)
-        
         
         # 1. Info-Box mit Beispiel-Tabelle anzeigen
         msgBox = QMessageBox(self)
@@ -3232,8 +3229,13 @@ if __name__ == "__main__": # Alles unter der if Abfrage wird nur dann ausgefsüh
     #Icon der Anwednung setzen
 
     # Absoluten Pfad zur Bilddatei relativ zum Skript ermitteln
-    basis_ordner = os.path.dirname(os.path.abspath(__file__))
-    icon_pfad = os.path.join(basis_ordner, "assets", "icon.png")
+    # PyInstaller-kompatible Pfadauflösung
+    if getattr(sys, 'frozen', False):
+        basis_ordner = sys._MEIPASS
+    else:
+        basis_ordner = os.path.dirname(os.path.abspath(__file__))
+
+    icon_pfad = os.path.join(basis_ordner, "assets", "Icon.png")
 
     # Nur setzen, wenn die Datei wirklich existiert:
     if os.path.exists(icon_pfad):
