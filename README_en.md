@@ -40,25 +40,55 @@
 ## Installation & Download
 
 ### Option 1: Standalone Application (Recommended – no Python required)
-Pre-built standalone executables for Windows and macOS are available under **[Releases](https://github.com/DEIN_NUTZERNAME/Protokollix/releases)** on the right:
+Pre-built standalone executables for Windows and macOS are available under **[Releases](https://github.com/jbreinl06-hash/plot_engine/releases)** on the right:
 
-1. Download the archive matching your operating system (`Protokollix_Windows.zip` or `Protokollix_Mac.zip`).
+1. Download the archive matching your operating system (`Protokollix-Windows.zip` or `Protokollix-macOS-arm64.zip`).
 2. Extract the archive.
 3. Launch the application by double-clicking the executable (no Python environment required).
 
-### Option 2: Run from Source Code (Python required)
+#### 🍎 Important Notice for macOS Users (Gatekeeper Warning)
+Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (*"Apple cannot check it for malicious software"* or *"App is damaged"*).
 
-If you already have Python installed or want to modify the source code:
+**How to open the app for the first time:**
 
-1. Clone this repository or download `script.py`.
-2. Install all required dependencies via your terminal:
+* **Option A (Via System Settings):**
+  1. Attempt to open **Protokollix** via double-click once (the security warning appears) -> click **Done** (or **Cancel**).
+  2. Open your Mac's **System Settings** -> **Privacy & Security**.
+  3. Scroll down to the **Security** section.
+  4. Click **"Open Anyway"** next to the Protokollix prompt and confirm.
 
+* **Option B (Fast Terminal Fix / Remove Quarantine):**
+  If macOS prevents execution by stating the app is damaged, open your **Terminal** and run:
+  ```bash
+  xattr -cr /path/to/Protokollix.app
+  ```
+  *(Tip: Type `xattr -cr ` with a trailing space, drag & drop the extracted `Protokollix.app` from Finder directly into the Terminal window, and hit Enter).*
+
+> **Note:** This bypass is only required **once** right after downloading. Afterwards, Protokollix will launch normally via double-click.
+
+
+#### 🪟 Note for Windows Users (SmartScreen)
+On initial launch, Microsoft Defender SmartScreen might display: *"Windows protected your PC"*.
+* Simply click **"More info"** and then select **"Run anyway"**.
+
+---
+
+### Option 2: Run from Source (Python required)
+
+If you have Python installed or want to modify the source code:
+
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/jbreinl06-hash/plot_engine.git](https://github.com/jbreinl06-hash/plot_engine.git)
+   cd plot_engine
+   ```
+2. Install the required dependencies:
    ```bash
    pip install PySide6 numpy pandas matplotlib scipy sympy openpyxl
    ```
 3. Run the application:
    ```bash
-   python script.py
+   python protokollix.py
    ```
 
 ---

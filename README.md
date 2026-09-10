@@ -40,11 +40,34 @@
 ## Installation & Download
 
 ### Option 1: Fertige Anwendung (Empfohlen – kein Python nötig)
-Die fertigen Programme für Windows und macOS findest du rechts unter **[Releases](https://github.com/DEIN_NUTZERNAME/Protokollix/releases)**:
+Die fertigen Programme für Windows und macOS findest du rechts unter **[Releases](https://github.com/jbreinl06-hash/plot_engine/releases)**:
 
-1. Lade für dein Betriebssystem das neueste Archiv herunter (`Protokollix_Windows.zip` oder `Protokollix_Mac.zip`).
-2. Entpacke die Datei.
+1. Lade für dein Betriebssystem das neueste Archiv herunter (`Protokollix-Windows.zip` oder `Protokollix-macOS-arm64.zip`).
+2. Entpacke die ZIP-Datei.
 3. Starte die Anwendung per Doppelklick (keine Python-Installation erforderlich).
+
+#### 🍎 Wichtiger Hinweis für macOS-Nutzer (Gatekeeper-Warnung)
+Da Protokollix ein freies Open-Source-Projekt ist und nicht über ein kostenpflichtiges Apple-Entwicklerzertifikat signiert wurde, stuft macOS die heruntergeladene App beim ersten Start standardmäßig als „nicht verifiziert“ ein (*„Apple kann nicht überprüfen, ob die App frei von Schadsoftware ist“*).
+
+**So startest du die App beim ersten Mal:**
+
+* **Option A (Über die Systemeinstellungen):**
+  1. Versuche, **Protokollix** einmalig per Doppelklick zu öffnen (die Gatekeeper-Meldung erscheint) -> klicke auf **Fertig**.
+  2. Öffne die **Systemeinstellungen** deines Macs -> **Datenschutz & Sicherheit**.
+  3. Scrolle nach unten zum Bereich **Sicherheit**.
+  4. Klicke neben dem Hinweis zu Protokollix auf **„Dennoch öffnen“** und bestätige die Abfrage.
+
+* **Option B (Schnell per Terminal / Quarantäne entfernen):**
+  Falls macOS die App als „beschädigt“ blockiert, öffne das **Terminal** und führe folgenden Befehl aus:
+  ```bash
+  xattr -cr /Pfad/zu/Protokollix.app
+
+
+#### 🪟 Hinweis für Windows-Nutzer (SmartScreen)
+Beim ersten Start meldet der Microsoft Defender möglicherweise: *„Der Computer wurde durch Windows geschützt“*.
+* Klicke einfach auf **„Weitere Informationen“** und anschließend auf **„Trotzdem ausführen“**.
+
+---
 
 ### Option 2: Direkt aus dem Quellcode ausführen (Python erforderlich)
 
