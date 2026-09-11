@@ -2,14 +2,8 @@
 **Language:** English | [🇩🇪 Deutsche Version](de)
 
 ---
+title: Protokollix📊 – Documentation
 
-# Protokollix Documentation
-
-<p align="right">
-  <a href="README.md">Deutsch</a> | <b>English</b>
-</p>
-
-# Protokollix 📊
 
 **Protokollix** is a lightweight desktop tool for fast data evaluation, interactive plotting, and automated maximum error propagation—optimized for undergraduate physics laboratory courses and scientific reports, designed specifically to save time during data analysis.
 
