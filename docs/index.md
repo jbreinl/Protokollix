@@ -1,10 +1,10 @@
+<p align="center">
+  <img src="FullIcon.png" alt="Protokollix Logo" width="520">
+</p>
 
-**Language:** English | [🇩🇪 Deutsche Version](de)
+🌐 **Language:** English | [🇩🇪 Deutsche Version](de)
 
 ---
-title: "Protokollix📊 – Documentation"
----
-
 
 **Protokollix** is a lightweight desktop tool for fast data evaluation, interactive plotting, and automated maximum error propagation—optimized for undergraduate physics laboratory courses and scientific reports, designed specifically to save time during data analysis.
 
@@ -35,14 +35,13 @@ title: "Protokollix📊 – Documentation"
   - [Peak Detection (Local Maxima / Minima)](#peak-detection-local-maxima--minima)
     - [Plot Visualization](#plot-visualization)
     - [Exporting Extrema](#exporting-extrema)
-- [Contact & Feedback](#contact--feedback)
 
 ---
 
 ## Installation & Download
 
 ### Option 1: Standalone Application (Recommended – no Python required)
-Pre-built standalone executables for Windows and macOS are available under **[Releases](https://github.com/jbreinl06-hash/plot_engine/releases)** on the right:
+Pre-built standalone executables for Windows and macOS are available under **[Releases](https://github.com/jbreinl/Protokollix/releases)** on the right:
 
 1. Download the archive matching your operating system (`Protokollix-Windows.zip` or `Protokollix-macOS-arm64.zip`).
 2. Extract the archive.
@@ -50,29 +49,31 @@ Pre-built standalone executables for Windows and macOS are available under **[Re
 
 #### 🍎 Important Notice for macOS Users (Gatekeeper Warning) {#important-notice-for-macos-users-gatekeeper-warning}
 
-Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (*"Apple cannot check it for malicious software"* or *"App is damaged"*).
-
-**How to open the app for the first time:**
-
-* **Option A (Via System Settings):**
-  1. Attempt to open **Protokollix** via double-click once (the security warning appears) -> click **Done** (or **Cancel**).
-  2. Open your Mac's **System Settings** -> **Privacy & Security**.
-  3. Scroll down to the **Security** section.
-  4. Click **"Open Anyway"** next to the Protokollix prompt and confirm.
-
-* **Option B (Fast Terminal Fix / Remove Quarantine):**
-  If macOS prevents execution by stating the app is damaged, open your **Terminal** and run:
-  ```bash
-  xattr -cr /path/to/Protokollix.app
-  ```
-  *(Tip: Type `xattr -cr ` with a trailing space, drag & drop the extracted `Protokollix.app` from Finder directly into the Terminal window, and hit Enter).*
-
-> **Note:** This bypass is only required **once** right after downloading. Afterwards, Protokollix will launch normally via double-click.
+> [!NOTE]
+> Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (*"Apple cannot check it for malicious software"* or *"App is damaged"*).
+>
+> **How to open the app for the first time:**
+>
+> * **Option A (Via System Settings):**
+>   1. Attempt to open **Protokollix** via double-click once (the security warning appears) -> click **Done** (or **Cancel**).
+>   2. Open your Mac's **System Settings** -> **Privacy & Security**.
+>   3. Scroll down to the **Security** section.
+>   4. Click **"Open Anyway"** next to the Protokollix prompt and confirm.
+>
+> * **Option B (Fast Terminal Fix / Remove Quarantine):**
+>   If macOS prevents execution by stating the app is damaged, open your **Terminal** and run:
+>   ```bash
+>   xattr -cr /path/to/Protokollix.app
+>   ```
+>   *(Tip: Type `xattr -cr ` with a trailing space, drag & drop the extracted `Protokollix.app` from Finder directly into the Terminal window, and hit Enter).*
+>
+> **Notice:** This bypass is only required **once** right after downloading. Afterwards, Protokollix will launch normally via double-click.
 
 ### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
 
-On initial launch, Microsoft Defender SmartScreen might display: *"Windows protected your PC"*.
-* Simply click **"More info"** and then select **"Run anyway"**.
+> [!NOTE]
+> On initial launch, Microsoft Defender SmartScreen might display: *"Windows protected your PC"*.
+> * Simply click **"More info"** and then select **"Run anyway"**.
 
 ---
 
@@ -82,8 +83,8 @@ If you have Python installed or want to modify the source code:
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/jbreinl06-hash/plot_engine.git](https://github.com/jbreinl06-hash/plot_engine.git)
-   cd plot_engine
+   git clone [https://github.com/jbreinl/Protokollix.git](https://github.com/jbreinl/Protokollix.git)
+   cd Protokollix
    ```
 2. Install the required dependencies:
    ```bash
@@ -144,7 +145,7 @@ The program validates the structure during import and alerts you if columns or f
 For small measurement series or quick corrections, you can enter data manually in the built-in table view located inside the **Data** tab:
 
 <p align="center">
-  <img src="docs/Datentabelle.png" alt="Built-in data table" width="700"><br>
+  <img src="Datentabelle.png" alt="Built-in data table" width="700"><br>
   <em>Figure 1: Built-in spreadsheet table for manual data entry and editing.</em>
 </p>
 
@@ -153,7 +154,7 @@ Data can be typed directly or pasted from the system clipboard. Incomplete data 
 Once manual values have been entered, select the newly added series using the central dataset selector dropdown in the **General** tab:
 
 <p align="center">
-  <img src="docs/Aktiverdatensatz.png" alt="Active dataset selector" width="700"><br>
+  <img src="Aktiverdatensatz.png" alt="Active dataset selector" width="700"><br>
   <em>Figure 2: The active dataset must be chosen via the dropdown menu.</em>
 </p>
 
@@ -186,7 +187,7 @@ Configurable plot settings include:
 Input fields feature real-time LaTeX syntax checking and highlight in red when an incomplete expression (such as an unclosed `$` sign) is detected, preventing canvas crashes while typing.
 
 <p align="center">
-  <img src="docs/schwingung.png" alt="Example plot of a damped oscillation" width="700"><br>
+  <img src="schwingung.png" alt="Example plot of a damped oscillation" width="700"><br>
   <em>Figure 3: High-resolution plot of a damped oscillation rendered in Protokollix.</em>
 </p>
 
@@ -207,7 +208,7 @@ One of the application's strongest capabilities is applying mathematical transfo
 Fitting regression models through experimental data is located under the **Calculator** tab:
 
 <p align="center">
-  <img src="docs/Fits.png" alt="Fit selector dropdown" width="700"><br>
+  <img src="Fits.png" alt="Fit selector dropdown" width="700"><br>
   <em>Figure 4: Regression models selectable via the dropdown menu.</em>
 </p>
 
@@ -222,7 +223,7 @@ The following models are available:
 Once a model is selected, its custom legend label can be configured. The evaluated parameters—**including their standard errors** computed from the covariance matrix—are displayed above the plot:
 
 <p align="center">
-  <img src="docs/Fittest.png" alt="Fit with parameters and uncertainties" width="700"><br>
+  <img src="Fittest.png" alt="Fit with parameters and uncertainties" width="700"><br>
   <em>Figure 5: Example of an exponential fit displaying calculated parameters and standard errors.</em>
 </p>
 
@@ -236,7 +237,7 @@ Once a model is selected, its custom legend label can be configured. The evaluat
 Clicking the **"Data Manipulation | Error Calculation"** button opens a dedicated calculation workspace:
 
 <p align="center">
-  <img src="docs/Rechner.png" alt="Error calculator window" width="700"><br>
+  <img src="Rechner.png" alt="Error calculator window" width="700"><br>
   <em>Figure 6: The Maximum Error Calculator interface.</em>
 </p>
 
@@ -265,7 +266,7 @@ Below the target options are two formula fields:
 * **Mathematical Formula:** The actual input field where algebraic expressions are entered.
 
 <p align="center">
-  <img src="docs/Rendering.png" alt="Live formula preview" width="700"><br>
+  <img src="Rendering.png" alt="Live formula preview" width="700"><br>
   <em>Figure 7: Formula preview (rendered) and text input fields.</em>
 </p>
 
@@ -296,7 +297,7 @@ Your spreadsheet contains time $t$ (Column 1) and angular displacement $\varphi$
    * In the formula field, enter `diff(y)` (evaluates $\dot{\varphi} = \frac{d\varphi}{dt}$). This replaces the time axis data with angular velocity $\omega$. Click **OK**.
 
 <p align="center">
-  <img src="docs/diff.png" alt="Derivative via diff(y)" width="700"><br>
+  <img src="diff.png" alt="Derivative via diff(y)" width="700"><br>
   <em>Figure 8: Applying diff(y) to numerically differentiate displacement data.</em>
 </p>
 
@@ -304,7 +305,7 @@ Your spreadsheet contains time $t$ (Column 1) and angular displacement $\varphi$
    * Click **Adjust Axis Limits** in the **General** tab. The plot now displays the characteristic inward-spiraling phase-space trajectory approaching the origin $(0, 0)$.
 
 <p align="center">
-  <img src="docs/Phasenraum.png" alt="Phase space plot" width="700"><br>
+  <img src="Phasenraum.png" alt="Phase space plot" width="700"><br>
   <em>Figure 9: The resulting phase-space trajectory of a damped oscillation.</em>
 </p>
 </details>
@@ -325,7 +326,7 @@ For every custom variable entered in the formula (as well as for `x` and `y`), t
 In the following example, constants `a` and `b` are multiplied with `y`: $a = 1.5, \Delta a = 0.01$, Digits(a) = 1, $b = 2, \Delta b = 0.05$:
 
 <p align="center">
-  <img src="docs/Unsicherheiten.png" alt="Uncertainty parameter inputs" width="700"><br>
+  <img src="Unsicherheiten.png" alt="Uncertainty parameter inputs" width="700"><br>
   <em>Figure 10: Parameter definitions including absolute uncertainties and instrument digits.</em>
 </p>
 
@@ -334,7 +335,7 @@ The digit error is determined automatically from the smallest decimal place of t
 Uncertainties can also be imported from a single-column Excel file:
 
 <p align="center">
-  <img src="docs/ImportUnsicherheiten.png" alt="Importing uncertainties" width="700"><br>
+  <img src="ImportUnsicherheiten.png" alt="Importing uncertainties" width="700"><br>
   <em>Figure 11: Y uncertainties loaded from an external Excel file.</em>
 </p>
 
@@ -367,7 +368,7 @@ To undo modifications, use the **Reset X-Data** or **Reset Y-Data** buttons in t
 Repeated measurements of identical quantities require calculating the arithmetic mean and sample standard deviation. Clicking **Mean Calculator** opens this analysis dialog:
 
 <p align="center">
-  <img src="docs/Mittelwertrechner.png" alt="Mean calculator interface" width="600"><br>
+  <img src="Mittelwertrechner.png" alt="Mean calculator interface" width="600"><br>
   <em>Figure 12: The Mean Calculator dialog window.</em>
 </p>
 
@@ -397,7 +398,7 @@ Using **Save as Excel**, all computed statistics across all columns can be expor
 <summary><b>Show Example: Evaluating multiple imported measurement series</b></summary>
 
 <p align="center">
-  <img src="docs/Mittelwertrechner_items.png" alt="Parallel mean evaluation" width="700"><br>
+  <img src="Mittelwertrechner_items.png" alt="Parallel mean evaluation" width="700"><br>
   <em>Figure 13: Parallel evaluation of multiple measurement series in the Mean Calculator.</em>
 </p>
 </details>
@@ -415,7 +416,7 @@ Use the dropdown menu to highlight extrema on the active Y series:
 * **Show Local Minima:** Marks all detected troughs on the curve.
 
 <p align="center">
-  <img src="docs/Maxima.png" alt="Peak detection controls" width="700"><br>
+  <img src="Maxima.png" alt="Peak detection controls" width="700"><br>
   <em>Figure 14: Marking and exporting local extrema.</em>
 </p>
 
@@ -428,11 +429,3 @@ Click **"Speichere Maxima / Minima als Excel"** to export all identified extrema
 * `Maxima (x)` & `Maxima (y)`
 
 Differing row counts between peaks and troughs are balanced with empty cells automatically.
-
----
-
-## Contact & Feedback
-
-Found a bug or have a suggestion?
-* Open an **Issue** here on GitHub.
-* Or reach out via email: `jakob.breinl@edu.uni-graz.at`
