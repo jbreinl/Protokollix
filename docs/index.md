@@ -1,5 +1,14 @@
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
 <p align="center">
-  <img src="FullIcon.png" alt="Protokollix Logo" width="520">
+  <img src="Icon.png" alt="Protokollix Logo" width="120">
 </p>
 
 🌐 **Language:** English | [🇩🇪 Deutsche Version](de)
@@ -49,31 +58,31 @@ Pre-built standalone executables for Windows and macOS are available under **[Re
 
 #### 🍎 Important Notice for macOS Users (Gatekeeper Warning) {#important-notice-for-macos-users-gatekeeper-warning}
 
-> [!NOTE]
-> Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (*"Apple cannot check it for malicious software"* or *"App is damaged"*).
->
-> **How to open the app for the first time:**
->
-> * **Option A (Via System Settings):**
->   1. Attempt to open **Protokollix** via double-click once (the security warning appears) -> click **Done** (or **Cancel**).
->   2. Open your Mac's **System Settings** -> **Privacy & Security**.
->   3. Scroll down to the **Security** section.
->   4. Click **"Open Anyway"** next to the Protokollix prompt and confirm.
->
-> * **Option B (Fast Terminal Fix / Remove Quarantine):**
->   If macOS prevents execution by stating the app is damaged, open your **Terminal** and run:
->   ```bash
->   xattr -cr /path/to/Protokollix.app
->   ```
->   *(Tip: Type `xattr -cr ` with a trailing space, drag & drop the extracted `Protokollix.app` from Finder directly into the Terminal window, and hit Enter).*
->
-> **Notice:** This bypass is only required **once** right after downloading. Afterwards, Protokollix will launch normally via double-click.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>macOS Security Notice:</strong><br>
+Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (<em>"Apple cannot check it for malicious software"</em> or <em>"App is damaged"</em>).<br><br>
+<strong>How to open the app for the first time:</strong><br><br>
+<strong>Option A (Via System Settings):</strong>
+<ol>
+  <li>Attempt to open <strong>Protokollix</strong> via double-click once (the security warning appears) &rarr; click <strong>Done</strong> (or <strong>Cancel</strong>).</li>
+  <li>Open your Mac's <strong>System Settings</strong> &rarr; <strong>Privacy & Security</strong>.</li>
+  <li>Scroll down to the <strong>Security</strong> section.</li>
+  <li>Click <strong>"Open Anyway"</strong> next to the Protokollix prompt and confirm.</li>
+</ol>
+<strong>Option B (Fast Terminal Fix / Remove Quarantine):</strong><br>
+If macOS prevents execution by stating the app is damaged, open your <strong>Terminal</strong> and run:
+<pre style="background: #e1e4e8; padding: 8px; border-radius: 4px; margin-top: 6px;">xattr -cr /path/to/Protokollix.app</pre>
+<em>(Tip: Type <code>xattr -cr </code> with a trailing space, drag & drop the extracted <code>Protokollix.app</code> from Finder directly into the Terminal window, and hit Enter).</em><br><br>
+<strong>Notice:</strong> This bypass is only required <strong>once</strong> right after downloading. Afterwards, Protokollix will launch normally via double-click.
+</div>
 
 ### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
 
-> [!NOTE]
-> On initial launch, Microsoft Defender SmartScreen might display: *"Windows protected your PC"*.
-> * Simply click **"More info"** and then select **"Run anyway"**.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Windows SmartScreen Notice:</strong><br>
+On initial launch, Microsoft Defender SmartScreen might display: <em>"Windows protected your PC"</em>.<br>
+Simply click <strong>"More info"</strong> and then select <strong>"Run anyway"</strong>.
+</div>
 
 ---
 
@@ -132,11 +141,13 @@ To ensure proper parsing, format your table as follows:
 
 The program validates the structure during import and alerts you if columns or formats do not conform.
 
-> [!TIP]
-> **Decimal Separators:** Both decimal dots (`1.25`) and European decimal commas (`1,25`) are parsed and converted into valid floating-point numbers automatically.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Decimal Separators:</strong> Both decimal dots (<code>1.25</code>) and European decimal commas (<code>1,25</code>) are parsed and converted into valid floating-point numbers automatically.
+</div>
 
-> [!NOTE]
-> When importing data for the very first time in a session, there might be a brief delay (1–10 seconds depending on system performance). This occurs because SciPy's peak-detection engine (`find_peaks`) initializes in the background. The mouse cursor changes to a waiting cursor to signal this background task.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Background Initialization:</strong> When importing data for the very first time in a session, there might be a brief delay (1–10 seconds depending on system performance). This occurs because SciPy's peak-detection engine (<code>find_peaks</code>) initializes in the background. The mouse cursor changes to a waiting cursor to signal this background task.
+</div>
 
 ---
 
@@ -160,8 +171,9 @@ Once manual values have been entered, select the newly added series using the ce
 
 The placeholder option `No data available` disappears once real data is imported. The table view can also be used to slightly modify existing points. To delete entire rows completely from an imported dataset, edit the original source file and reload it.
 
-> [!TIP]
-> While convenient for small checks, it is advisable to log raw lab data inside a dedicated spreadsheet program (such as Excel) and import the finished file into Protokollix.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Best Practice:</strong> While convenient for small checks, it is advisable to log raw lab data inside a dedicated spreadsheet program (such as Excel) and import the finished file into Protokollix.
+</div>
 
 ---
 
@@ -227,8 +239,9 @@ Once a model is selected, its custom legend label can be configured. The evaluat
   <em>Figure 5: Example of an exponential fit displaying calculated parameters and standard errors.</em>
 </p>
 
-> [!TIP]
-> Plotting multiple distinct regression curves simultaneously within the same axis is currently not supported, as this is rarely required in standard lab reports.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Note:</strong> Plotting multiple distinct regression curves simultaneously within the same axis is currently not supported, as this is rarely required in standard lab reports.
+</div>
 
 ---
 
@@ -250,11 +263,10 @@ Three radio options at the top define how transformed data is routed:
 * **X-Data & X-Errorbar (horizontal):** Calculations and propagated uncertainties apply to the X dataset. Error bars are drawn horizontally.
 * **Calculation Only (Table / Single Value):** For calculations that do not require plotting. Using the dedicated `Load single data column` button, an isolated data column can be evaluated and exported independently.
 
-> [!TIP]
-> Inside the `Calculation Only` mode, loaded values are referenced using variable `y`.
-
-> [!TIP]
-> In physics, axes are often named after specific physical quantities (such as $t$ for time or $s$ for displacement). Inside the calculator, axes are **always referenced as `x` and `y`**, as the parser cannot guess the physical nature of your measurement.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Variable Mapping:</strong> Inside the <code>Calculation Only</code> mode, loaded values are referenced using variable <code>y</code>.<br><br>
+In physics, axes are often named after specific physical quantities (such as $t$ for time or $s$ for displacement). Inside the calculator, axes are <strong>always referenced as <code>x</code> and <code>y</code></strong>, as the parser cannot guess the physical nature of your measurement.
+</div>
 
 ---
 
@@ -278,8 +290,9 @@ The integrated engine uses SymPy for symbolic algebra. The following standards a
 `log(...)` evaluates the **common logarithm** ($\log_{10}$), whereas `ln(...)` evaluates the **natural logarithm** ($\ln$). While this diverges from standard Python conventions, it mirrors scientific calculators and physics course standards.
 * Numerical Derivatives: `diff(y)` evaluates the numerical derivative $\frac{dy}{dx}$ using finite gradient approximations (`np.gradient`).
 
-> [!TIP]
-> The constant $\pi$ must be entered in lowercase as `pi` (not `Pi`).
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Syntax Convention:</strong> The constant $\pi$ must be entered in lowercase as <code>pi</code> (not <code>Pi</code>).
+</div>
 
 <details>
 <summary><b>Show Example: Plotting the phase space of a damped harmonic oscillator</b></summary>
@@ -339,8 +352,9 @@ Uncertainties can also be imported from a single-column Excel file:
   <em>Figure 11: Y uncertainties loaded from an external Excel file.</em>
 </p>
 
-> [!TIP]
-> You can work incrementally: calculate uncertainties for an isolated dataset first, export them, reload the original measurement coordinates, and import the previously computed uncertainties.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Workflow Tip:</strong> You can work incrementally: calculate uncertainties for an isolated dataset first, export them, reload the original measurement coordinates, and import the previously computed uncertainties.
+</div>
 
 ---
 
@@ -358,8 +372,9 @@ Clicking **OK** commits the transformed values to the main plot. **Calculated un
 
 To undo modifications, use the **Reset X-Data** or **Reset Y-Data** buttons in the **Data** tab to restore the original imported state.
 
-> [!TIP]
-> If you want to transform both axes or assign error bars to both X and Y, run the calculator twice: once selecting X data, click **OK**, then reopen, select Y data, and confirm with **OK** again.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Two-Axis Propagation:</strong> If you want to transform both axes or assign error bars to both X and Y, run the calculator twice: once selecting X data, click <strong>OK</strong>, then reopen, select Y data, and confirm with <strong>OK</strong> again.
+</div>
 
 ---
 
@@ -420,8 +435,9 @@ Use the dropdown menu to highlight extrema on the active Y series:
   <em>Figure 14: Marking and exporting local extrema.</em>
 </p>
 
-> [!NOTE]
-> Peak detection evaluates the currently active Y dataset. The dropdown and export buttons remain disabled when no data is loaded or when no peaks are detected.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Requirements:</strong> Peak detection evaluates the currently active Y dataset. The dropdown and export buttons remain disabled when no data is loaded or when no peaks are detected.
+</div>
 
 #### Exporting Extrema
 Click **"Speichere Maxima / Minima als Excel"** to export all identified extrema into a standalone Excel (`.xlsx`) or CSV (`.csv`) file with four columns:
