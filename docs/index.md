@@ -56,9 +56,7 @@ Pre-built standalone executables for Windows and macOS are available under **[Re
 2. Extract the archive.
 3. Launch the application by double-clicking the executable (no Python environment required).
 
-#### 🍎 Important Notice for macOS Users (Gatekeeper Warning) {#important-notice-for-macos-users-gatekeeper-warning}
-
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<div id="important-notice-for-macos-users-gatekeeper-warning" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
 <strong>macOS Security Notice:</strong><br>
 Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (<em>"Apple cannot check it for malicious software"</em> or <em>"App is damaged"</em>).<br><br>
 <strong>How to open the app for the first time:</strong><br><br>
@@ -76,9 +74,7 @@ If macOS prevents execution by stating the app is damaged, open your <strong>Ter
 <strong>Notice:</strong> This bypass is only required <strong>once</strong> right after downloading. Afterwards, Protokollix will launch normally via double-click.
 </div>
 
-#### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
-
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<div id="note-for-windows-users-smartscreen" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
 <strong>Windows SmartScreen Notice:</strong><br>
 On initial launch, Microsoft Defender SmartScreen might display: <em>"Windows protected your PC"</em>.<br>
 Simply click <strong>"More info"</strong> and then select <strong>"Run anyway"</strong>.
@@ -247,7 +243,7 @@ Once a model is selected, its custom legend label can be configured. The evaluat
 
 ### Maximum Error Calculator
 
-Clicking the **"Data Manipulation | Error Calculation"** button opens a dedicated calculation workspace:
+Clicking the `Data Manipulation and Error Calculation` button opens a dedicated calculation workspace:
 
 <p align="center">
   <img src="Rechner.png" alt="Error calculator window" width="700"><br>
