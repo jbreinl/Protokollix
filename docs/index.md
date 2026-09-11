@@ -8,7 +8,7 @@ window.MathJax = {
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
 <p align="center">
-  <img src="Icon.png" alt="Protokollix Logo" width="120">
+  <img src="FullIcon.png" alt="Protokollix Logo" width="520">
 </p>
 
 🌐 **Language:** English | [🇩🇪 Deutsche Version](de)
@@ -76,7 +76,7 @@ If macOS prevents execution by stating the app is damaged, open your <strong>Ter
 <strong>Notice:</strong> This bypass is only required <strong>once</strong> right after downloading. Afterwards, Protokollix will launch normally via double-click.
 </div>
 
-### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
+#### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
 
 <div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
 <strong>Windows SmartScreen Notice:</strong><br>
@@ -440,7 +440,7 @@ Use the dropdown menu to highlight extrema on the active Y series:
 </div>
 
 #### Exporting Extrema
-Click **"Speichere Maxima / Minima als Excel"** to export all identified extrema into a standalone Excel (`.xlsx`) or CSV (`.csv`) file with four columns:
+Click **"Save Maxima / Minima to Excel"** to export all identified extrema into a standalone Excel (`.xlsx`) or CSV (`.csv`) file with four columns:
 * `Minima (x)` & `Minima (y)`
 * `Maxima (x)` & `Maxima (y)`
 
