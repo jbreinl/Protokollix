@@ -1,3 +1,9 @@
+## 📖 Documentation / Dokumentation
+
+* 🇬🇧 [Read the Manual (English)](https://jbreinl06-hash.github.io/plot_engine/)
+* 🇩🇪 [Benutzerhandbuch lesen (Deutsch)](https://jbreinl06-hash.github.io/plot_engine/de)
+
+
 <p align="right">
   <b>Deutsch</b> | <a href="README_en.md">English</a>
 </p>
