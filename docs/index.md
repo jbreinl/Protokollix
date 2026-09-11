@@ -2,7 +2,8 @@
 **Language:** English | [🇩🇪 Deutsche Version](de)
 
 ---
-title: Protokollix📊 – Documentation
+title: "Protokollix📊 – Documentation"
+---
 
 
 **Protokollix** is a lightweight desktop tool for fast data evaluation, interactive plotting, and automated maximum error propagation—optimized for undergraduate physics laboratory courses and scientific reports, designed specifically to save time during data analysis.
@@ -47,7 +48,8 @@ Pre-built standalone executables for Windows and macOS are available under **[Re
 2. Extract the archive.
 3. Launch the application by double-clicking the executable (no Python environment required).
 
-#### 🍎 Important Notice for macOS Users (Gatekeeper Warning)
+#### 🍎 Important Notice for macOS Users (Gatekeeper Warning) {#important-notice-for-macos-users-gatekeeper-warning}
+
 Because Protokollix is a free, open-source project without a paid Apple Developer certificate, macOS Gatekeeper flags the downloaded bundle on initial launch (*"Apple cannot check it for malicious software"* or *"App is damaged"*).
 
 **How to open the app for the first time:**
@@ -67,8 +69,8 @@ Because Protokollix is a free, open-source project without a paid Apple Develope
 
 > **Note:** This bypass is only required **once** right after downloading. Afterwards, Protokollix will launch normally via double-click.
 
+### 🪟 Note for Windows Users (SmartScreen) {#note-for-windows-users-smartscreen}
 
-#### 🪟 Note for Windows Users (SmartScreen)
 On initial launch, Microsoft Defender SmartScreen might display: *"Windows protected your PC"*.
 * Simply click **"More info"** and then select **"Run anyway"**.
 
