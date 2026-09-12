@@ -56,8 +56,8 @@ Die fertigen Programme für Windows und macOS findest du rechts unter **[Release
 2. Entpacke die ZIP-Datei.
 3. Starte die Anwendung per Doppelklick (keine Python-Installation erforderlich).
 
-<div id="important-notice-for-macos-users-gatekeeper-warning" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-<strong>Wichtiger Hinweis für macOS-Nutzer (Gatekeeper-Warnung):</strong><br>
+<div id="important-notice-for-macos-users-gatekeeper-warning" markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>macOS-Sicherheitshinweis (Gatekeeper):</strong><br>
 Da Protokollix ein freies Open-Source-Projekt ist und nicht über ein kostenpflichtiges Apple-Entwicklerzertifikat signiert wurde, stuft macOS die heruntergeladene App beim ersten Start standardmäßig als „nicht verifiziert“ ein (<em>„Apple kann nicht überprüfen, ob die App frei von Schadsoftware ist“</em>).<br><br>
 <strong>So startest du die App beim ersten Mal:</strong><br><br>
 <strong>Option A (Über die Systemeinstellungen):</strong>
@@ -72,9 +72,8 @@ Falls macOS die App als „beschädigt“ blockiert, öffne das <strong>Terminal
 <pre style="background: #e1e4e8; padding: 8px; border-radius: 4px; margin-top: 6px;">xattr -cr /Pfad/zu/Protokollix.app</pre>
 </div>
 
-<div id="note-for-windows-users-smartscreen" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-<strong>Hinweis für Windows-Nutzer (SmartScreen):</strong><br>
-Beim ersten Start meldet der Microsoft Defender möglicherweise: <em>„Der Computer wurde durch Windows geschützt“</em>.<br>
+<div id="note-for-windows-users-smartscreen" markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Windows-Hinweis (SmartScreen):</strong> Beim ersten Start meldet der Microsoft Defender möglicherweise: <em>„Der Computer wurde durch Windows geschützt“</em>.<br>
 * Klicke einfach auf <strong>„Weitere Informationen“</strong> und anschließend auf <strong>„Trotzdem ausführen“</strong>.
 </div>
 
@@ -127,12 +126,12 @@ Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebau
 
 Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, und zeigt zusätzlich beim Importieren nochmal das erwünschte Format an. 
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
 <strong>Dezimaltrennzeichen:</strong> Sowohl Punkte (<code>1.25</code>) als auch Kommas (<code>1,25</code>) werden beim Einlesen automatisch erkannt und konvertiert.
 </div>
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Beim erstmaligen Einlesen der Messdaten mithilfe des <strong>Öffne Excel/CSV</strong> Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion <code>find_peaks</code> aus der Bibliothek <code>SciPy</code> geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1–10 Sekunden dauern kann.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Hintergrund-Ladezeit:</strong> Beim erstmaligen Einlesen der Messdaten mithilfe des <strong>Öffne Excel/CSV</strong> Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion <code>find_peaks</code> aus der Bibliothek <code>SciPy</code> geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1–10 Sekunden dauern kann.
 </div>
 
 ---
@@ -155,8 +154,8 @@ Sofern keine Messdaten importiert wurden, ist es möglich, Daten in die Tabelle 
 
 Die Option `Keine Daten geladen` verschwindet aus dem Auswahlfenster, sobald Daten über den Importierbutton importiert wurden. Die Tabellenansicht kann weiters dafür benutzt werden, um bestehende Messdaten nachträglich geringfügig zu manipulieren – sprich einen Wert durch einen anderen zu ersetzen. Es ist nicht möglich, bereits geladene Wertepaare ganz aus dem Datensatz zu löschen, hierfür muss die Exceltabelle des Imports angepasst werden und anschließend neu geladen werden.
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Es empfiehlt sich nicht, Protokollix zu benutzen, um Messdaten in der eingebauten Tabelle direkt nach dem Messen im Labor zu protokollieren – hierfür ist eine Excel-Tabelle besser geeignet.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Protokollierungs-Tipp:</strong> Es empfiehlt sich nicht, Protokollix zu benutzen, um Messdaten in der eingebauten Tabelle direkt nach dem Messen im Labor zu protokollieren – hierfür ist eine Excel-Tabelle besser geeignet.
 </div>
 
 ---
@@ -215,8 +214,8 @@ Ein Fit kann jederzeit gelegt werden. Sobald eine Fitfunktion ausgewählt wurde,
   <em>Abbildung 5: Ein Beispiel für einen möglichen Fit. Die Fitparameter sind oben rechts zu sehen.</em>
 </p>
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Mehrere Fits im selben Plot sind derzeit <em>nicht</em> möglich, sind im Laboralltag aber auch sehr selten gefragt.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Einschränkung:</strong> Mehrere Fits im selben Plot sind derzeit <em>nicht</em> möglich, sind im Laboralltag aber auch sehr selten gefragt.
 </div>
 
 ---
@@ -239,12 +238,12 @@ Ganz oben im neu geöffneten Fenster stehen drei Auswahlmöglichkeiten zur Verf�
 * **X-Daten & X-Errorbar (horizontal):** Wird diese Option gewählt, so beziehen sich sämtliche Rechnungen und Unsicherheiten auf die X-Daten. Ein automatisch generiertes `X` im Eingabefeld verdeutlicht dies zusätzlich. Ist diese Option gewählt, können also die vorher geladenen X-Daten manipuliert werden. Die aus den Unsicherheiten generierten Fehlerbalken sind horizontal, weil sie die X-Unsicherheiten angeben. Will man die manipulierten Daten im Anschluss exportieren, kann der Button `Daten speichern` genutzt werden.
 * **Nur Berechnen (Tabelle / Einzelwert):** Teilweise ist es im Laboralltag gar nicht notwendig, Daten zu plotten, sondern es reicht, eine einzelne Messreihe mathematisch zu manipulieren. Protokollix wurde in erster Linie für die Erstellung von Plots optimiert, besitzt jedoch auch eine Funktion für die reine Datenmanipulation ohne grafische Darstellung. Da das Programm beim Import über Excel/CSV immer X- und Y-Daten benötigt, steht im Größtfehlerrechner eine dritte Option zur Auswahl, die ausschließlich Berechnungen dient. Über einen extra Button `Lade einzelne Datenspalte` kann eine einzelne Y-Messreihe geladen und – wie schon bei X- und Y-Daten – manipuliert werden. Im Anschluss können die neu berechneten Daten und ihre Unsicherheiten mithilfe des Buttons `Daten speichern` exportiert werden. 
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Im <code>Nur Berechnen (Tabelle / Einzelwert)</code> Menü wird auch mithilfe von <code>Y</code> auf die geladenen Daten zugegriffen!
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Variablenzugriff:</strong> Im <code>Nur Berechnen (Tabelle / Einzelwert)</code> Menü wird auch mithilfe von <code>Y</code> auf die geladenen Daten zugegriffen!
 </div>
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Nicht verwirren lassen: Häufig werden die Messachsen in der Physik nicht mit <code>X</code> und <code>Y</code> bezeichnet – sondern z. B. mit <code>t (für die Zeit)</code> oder <code>x (für den Weg)</code>. Im Größtfehlerrechner erfolgt der Zugriff auf diese Messdaten trotzdem immer mit <code>X</code> und <code>Y</code> – das Programm kann nicht wissen, welche physikalische Größe gemessen wurde.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Achsenkonvention:</strong> Nicht verwirren lassen: Häufig werden die Messachsen in der Physik nicht mit <code>X</code> und <code>Y</code> bezeichnet – sondern z. B. mit <code>t (für die Zeit)</code> oder <code>x (für den Weg)</code>. Im Größtfehlerrechner erfolgt der Zugriff auf diese Messdaten trotzdem immer mit <code>X</code> und <code>Y</code> – das Programm kann nicht wissen, welche physikalische Größe gemessen wurde.
 </div>
 
 ---
@@ -270,8 +269,8 @@ Der integrierte Rechner nutzt symbolische Computeralgebra (SymPy). Beim Eingeben
 `log(...)` berechnet den Zehnerlogarithmus ($\log_{10}$), während `ln(...)` für den natürlichen Logarithmus steht. Dies weicht zwar von gängigen Programmiersprachen-Konventionen ab, entspricht jedoch der vertrauten Tastenbelegung wissenschaftlicher Taschenrechner und der Schreibweise in der Vorlesung.
 * Numerische Ableitungen: `diff(y)` berechnet die numerische Ableitung `dy/dx`.
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Die Konstante $\pi$ wird durch <code>pi</code> eingegeben, nicht durch <code>Pi</code>! Vergiss nicht, dass die $e$-Funktion durch <code>exp(...)</code> eingegeben werden muss!
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Konstanten &amp; Funktionen:</strong> Die Konstante $\pi$ wird durch <code>pi</code> eingegeben, nicht durch <code>Pi</code>! Vergiss nicht, dass die $e$-Funktion durch <code>exp(...)</code> eingegeben werden muss!
 </div>
 
 <details markdown="1">
@@ -331,8 +330,8 @@ Es ist auch möglich, Unsicherheiten zu importieren. Hier gilt wieder das Auswah
   <em>Abbildung 11: Die Y-Unsicherheiten wurden über den Button „Importiere Y-Unsicherheiten aus Excel“ importiert.</em>
 </p>
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Natürlich ist es auch möglich, schrittweise zu arbeiten: So könnte man z. B. erst die Unsicherheiten für eine einzelne Messreihe berechnen (mithilfe des <code>Nur Berechnen (Tabelle / Einzelwert)</code>-Buttons), diese anschließend exportieren, danach die ursprünglichen X- und Y-Werte laden und die eben berechneten Unsicherheiten über den <code>Importiere Unsicherheiten</code>-Button hinzufügen. Diese Vorgehensweise empfiehlt sich vor allem bei komplexeren Aufgabenstellungen.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Schrittweises Vorgehen:</strong> Natürlich ist es auch möglich, schrittweise zu arbeiten: So könnte man z. B. erst die Unsicherheiten für eine einzelne Messreihe berechnen (mithilfe des <code>Nur Berechnen (Tabelle / Einzelwert)</code>-Buttons), diese anschließend exportieren, danach die ursprünglichen X- und Y-Werte laden und die eben berechneten Unsicherheiten über den <code>Importiere Unsicherheiten</code>-Button hinzufügen. Diese Vorgehensweise empfiehlt sich vor allem bei komplexeren Aufgabenstellungen.
 </div>
 
 ---
@@ -350,8 +349,8 @@ Ganz unten im Größtfehlermenü befindet sich die Live-Vorschau der Daten, die 
 #### Anwenden und Zurücksetzen der Änderungen
 Ist man fertig mit den Berechnungen, können die nun neuen X- oder Y-Daten auf den Plot angewendet werden. **Unsicherheiten werden dabei automatisch zu Fehlerbalken!** Einmal angewendet, können die Daten im Tab **Daten** wieder zurückgesetzt werden – hierfür dienen die Buttons `X-Daten zurücksetzen` und `Y-Daten zurücksetzen`.
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Will man sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so ruft man den Größtfehlerrechner zwei Mal auf: Einmal oben X-Daten auswählen, berechnen und <code>OK</code> drücken; im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder mit <code>OK</code> bestätigen.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Zwei Achsen bearbeiten:</strong> Will man sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so ruft man den Größtfehlerrechner zwei Mal auf: Einmal oben X-Daten auswählen, berechnen und <code>OK</code> drücken; im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder mit <code>OK</code> bestätigen.
 </div>
 
 ---
@@ -387,11 +386,11 @@ Messwerte können auch hier auf zwei Wegen übergeben werden:
 1. **Import via Excel/CSV:** Über den Import-Button im Dialog können gezielt Dateien eingelesen werden, die reine Messreihen enthalten. Unterstützt werden auch mehrere Spalten gleichzeitig, sodass verschiedene Messreihen in einem Durchgang analysiert werden. Das benötigte Format wird direkt beim Einlesen angezeigt. 
 2. **Manuelle Eingabe:** Ähnlich wie im Hauptprogramm steht eine direkte Tabellenansicht bereit, in die Messwerte zeilenweise eingetragen oder aus der Zwischenablage eingefügt werden können.
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Über den Button <code>Mittelwerte als Excel speichern</code> können beliebig viele gleichzeitig berechnete Mittelwerte gespeichert werden – was praktisch sein kann, um diese im Anschluss z. B. als neue Daten im Größtfehlerrechner zu laden.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Export-Funktion:</strong> Über den Button <code>Mittelwerte als Excel speichern</code> können beliebig viele gleichzeitig berechnete Mittelwerte gespeichert werden – was praktisch sein kann, um diese im Anschluss z. B. als neue Daten im Größtfehlerrechner zu laden.
 </div>
 
-<details>
+<details markdown="1">
 <summary><b>Beispiel anzeigen: Mittelwert von importierten Messwerten berechnen</b></summary>
 
 Im folgenden Beispiel wurden mehrere Mittelwerte gleichzeitig berechnet:
@@ -419,8 +418,8 @@ Für Resonanzkurven, gedämpfte Schwingungen oder spektroskopische Messungen bie
   <em>Abbildung 14: Über ein Menü können die Maxima oder Minima der Daten angezeigt und exportiert werden.</em>
 </p>
 
-<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
-Die Auswertung erfolgt strikt auf der aktuell ausgewählten Y-Messreihe. Die Auswahlliste und der Export-Button werden automatisch deaktiviert, wenn keine Daten geladen sind oder keine signifikanten Peaks erkannt wurden.
+<div markdown="1" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Berechnungsvoraussetzung:</strong> Die Auswertung erfolgt strikt auf der aktuell ausgewählten Y-Messreihe. Die Auswahlliste und der Export-Button werden automatisch deaktiviert, wenn keine Daten geladen sind oder keine signifikanten Peaks erkannt wurden.
 </div>
 
 #### Export der Extrema
