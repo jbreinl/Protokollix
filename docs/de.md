@@ -223,7 +223,7 @@ Mehrere Fits im selben Plot sind derzeit <em>nicht</em> möglich, sind im Labora
 
 ### Größtfehler-Rechner
 
-Durch das Klicken auf den Button **Datenmanipulation | Fehlerrechnung** öffnet sich ein eigenes Fenster, der **Rechner**. Dieser enthält einige der wichtigsten Funktionen.
+Durch das Klicken auf den Button `Datenmanipulation Fehlerrechnung` öffnet sich ein eigenes Fenster, der **Rechner**. Dieser enthält einige der wichtigsten Funktionen.
 
 <p align="center">
   <img src="Rechner.png" alt="Der Rechner öffnet sich" width="700"><br>
@@ -274,7 +274,7 @@ Der integrierte Rechner nutzt symbolische Computeralgebra (SymPy). Beim Eingeben
 Die Konstante $\pi$ wird durch <code>pi</code> eingegeben, nicht durch <code>Pi</code>! Vergiss nicht, dass die $e$-Funktion durch <code>exp(...)</code> eingegeben werden muss!
 </div>
 
-<details>
+<details markdown="1">
 <summary><b>Beispiel anzeigen: Phasenraum einer gedämpften Schwingung darstellen</b></summary>
 
 Um den Phasenraum $(\varphi, \dot{\varphi})$ oder $(x, \dot{x})$ einer gedämpften Schwingung darzustellen, trägst du die Geschwindigkeit bzw. Winkelgeschwindigkeit gegen die Auslenkung auf.
