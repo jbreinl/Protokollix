@@ -4,7 +4,7 @@
 
 ## Installation
 
-For detailed step-by-step instructions, please refer to the [Installation Guide on our documentation page](https://jbreinl.github.io/Protokollix/#installation--download).
+For detailed step-by-step instructions, please refer to the [Installation Guide](https://jbreinl.github.io/Protokollix/#installation--download)  on the documentation page.
 
 > [!NOTE]
 > **Windows Users**:
