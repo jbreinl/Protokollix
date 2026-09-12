@@ -290,7 +290,7 @@ The integrated engine uses SymPy for symbolic algebra. The following standards a
 <strong>Syntax Convention:</strong> The constant $\pi$ must be entered in lowercase as <code>pi</code> (not <code>Pi</code>).
 </div>
 
-<details>
+<details markdown="1">
 <summary><b>Show Example: Plotting the phase space of a damped harmonic oscillator</b></summary>
 
 To plot phase space $(\varphi, \dot{\varphi})$ or $(x, \dot{x})$, plot angular velocity against angular displacement.
