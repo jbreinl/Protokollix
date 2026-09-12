@@ -1,9 +1,18 @@
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
+<p align="center">
+  <img src="FullIcon.png" alt="Protokollix Logo" width="520">
+</p>
 
 🌐 **Sprache:** [English](./) | Deutsch
 
----
-title: Protokollix📊 – Dokumentation
 ---
 
 **Protokollix** ist ein leichtgewichtiges Desktop-Werkzeug zur schnellen Datenauswertung, interaktiven Plot-Erstellung und automatisierten Größtfehlerberechnung – optimiert für physikalische Praktika und wissenschaftliche Laborberichte, entwickelt, um Zeit bei der Auswertung zu sparen. 
@@ -35,39 +44,39 @@ title: Protokollix📊 – Dokumentation
   - [Maxima- & Minima-Erkennung](#maxima---minima-erkennung)
     - [Anzeige im Plot](#anzeige-im-plot)
     - [Export der Extrema](#export-der-extrema)
-- [Kontakt & Feedback](#kontakt--feedback)
 
 ---
 
 ## Installation & Download
 
 ### Option 1: Fertige Anwendung (Empfohlen – kein Python nötig)
-Die fertigen Programme für Windows und macOS findest du rechts unter **[Releases](https://github.com/jbreinl06-hash/plot_engine/releases)**:
+Die fertigen Programme für Windows und macOS findest du rechts unter **[Releases](https://github.com/jbreinl/Protokollix/releases)**:
 
 1. Lade für dein Betriebssystem das neueste Archiv herunter (`Protokollix-Windows.zip` oder `Protokollix-macOS-arm64.zip`).
 2. Entpacke die ZIP-Datei.
 3. Starte die Anwendung per Doppelklick (keine Python-Installation erforderlich).
 
-#### 🍎 Wichtiger Hinweis für macOS-Nutzer (Gatekeeper-Warnung)
-Da Protokollix ein freies Open-Source-Projekt ist und nicht über ein kostenpflichtiges Apple-Entwicklerzertifikat signiert wurde, stuft macOS die heruntergeladene App beim ersten Start standardmäßig als „nicht verifiziert“ ein (*„Apple kann nicht überprüfen, ob die App frei von Schadsoftware ist“*).
+<div id="important-notice-for-macos-users-gatekeeper-warning" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Wichtiger Hinweis für macOS-Nutzer (Gatekeeper-Warnung):</strong><br>
+Da Protokollix ein freies Open-Source-Projekt ist und nicht über ein kostenpflichtiges Apple-Entwicklerzertifikat signiert wurde, stuft macOS die heruntergeladene App beim ersten Start standardmäßig als „nicht verifiziert“ ein (<em>„Apple kann nicht überprüfen, ob die App frei von Schadsoftware ist“</em>).<br><br>
+<strong>So startest du die App beim ersten Mal:</strong><br><br>
+<strong>Option A (Über die Systemeinstellungen):</strong>
+<ol>
+  <li>Versuche, <strong>Protokollix</strong> einmalig per Doppelklick zu öffnen (die Gatekeeper-Meldung erscheint) -&gt; klicke auf <strong>Fertig</strong>.</li>
+  <li>Öffne die <strong>Systemeinstellungen</strong> deines Macs -&gt; <strong>Datenschutz &amp; Sicherheit</strong>.</li>
+  <li>Scrolle nach unten zum Bereich <strong>Sicherheit</strong>.</li>
+  <li>Klicke neben dem Hinweis zu Protokollix auf <strong>„Dennoch öffnen“</strong> und bestätige die Abfrage.</li>
+</ol>
+<strong>Option B (Schnell per Terminal / Quarantäne entfernen):</strong><br>
+Falls macOS die App als „beschädigt“ blockiert, öffne das <strong>Terminal</strong> und führe folgenden Befehl aus:
+<pre style="background: #e1e4e8; padding: 8px; border-radius: 4px; margin-top: 6px;">xattr -cr /Pfad/zu/Protokollix.app</pre>
+</div>
 
-**So startest du die App beim ersten Mal:**
-
-* **Option A (Über die Systemeinstellungen):**
-  1. Versuche, **Protokollix** einmalig per Doppelklick zu öffnen (die Gatekeeper-Meldung erscheint) -> klicke auf **Fertig**.
-  2. Öffne die **Systemeinstellungen** deines Macs -> **Datenschutz & Sicherheit**.
-  3. Scrolle nach unten zum Bereich **Sicherheit**.
-  4. Klicke neben dem Hinweis zu Protokollix auf **„Dennoch öffnen“** und bestätige die Abfrage.
-
-* **Option B (Schnell per Terminal / Quarantäne entfernen):**
-  Falls macOS die App als „beschädigt“ blockiert, öffne das **Terminal** und führe folgenden Befehl aus:
-  ```bash
-  xattr -cr /Pfad/zu/Protokollix.app
-
-
-#### 🪟 Hinweis für Windows-Nutzer (SmartScreen)
-Beim ersten Start meldet der Microsoft Defender möglicherweise: *„Der Computer wurde durch Windows geschützt“*.
-* Klicke einfach auf **„Weitere Informationen“** und anschließend auf **„Trotzdem ausführen“**.
+<div id="note-for-windows-users-smartscreen" style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Hinweis für Windows-Nutzer (SmartScreen):</strong><br>
+Beim ersten Start meldet der Microsoft Defender möglicherweise: <em>„Der Computer wurde durch Windows geschützt“</em>.<br>
+* Klicke einfach auf <strong>„Weitere Informationen“</strong> und anschließend auf <strong>„Trotzdem ausführen“</strong>.
+</div>
 
 ---
 
@@ -118,13 +127,13 @@ Damit Protokollix Dateien fehlerfrei einliest, muss die Datei wie folgt aufgebau
 
 Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, und zeigt zusätzlich beim Importieren nochmal das erwünschte Format an. 
 
-> [!TIP]
-> Dezimaltrennzeichen: Sowohl Punkte (`1.25`) als auch Kommas (`1,25`) werden beim Einlesen automatisch erkannt und konvertiert.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+<strong>Dezimaltrennzeichen:</strong> Sowohl Punkte (<code>1.25</code>) als auch Kommas (<code>1,25</code>) werden beim Einlesen automatisch erkannt und konvertiert.
+</div>
 
-<br>
-
-> [!TIP]
-> Beim erstmaligen Einlesen der Messdaten mithilfe des **Öffne Excel/CSV** Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion `find_peaks` aus der Bibliothek `SciPy` geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1–10 Sekunden dauern kann. 
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Beim erstmaligen Einlesen der Messdaten mithilfe des <strong>Öffne Excel/CSV</strong> Buttons kann es zu kurzen Verzögerungen kommen. Das Programm signalisiert durch eine Änderung des Mauscursors, dass es im Hintergrund arbeitet. Der Grund dafür ist, dass im Moment des Ladens die Funktion <code>find_peaks</code> aus der Bibliothek <code>SciPy</code> geladen wird, um direkt abzugleichen, ob die Messdaten Maxima und/oder Minima enthalten, was je nach Betriebssystem und Performance 1–10 Sekunden dauern kann.
+</div>
 
 ---
 
@@ -133,25 +142,22 @@ Das Programm gibt eine Warnung aus, falls die eingelesenen Daten nicht passen, u
 Neben der Möglichkeit, Dateien zu laden, ist es für kleine Datenmengen und schnelle Änderungen möglich, Messdaten manuell über die eingebaute Tabellenansicht einzufügen. Diese befindet sich ebenfalls im `Daten-Tab`, links neben dem Plot, wie folgend abgebildet: 
 
 <p align="center">
-  <img src="docs/Datentabelle.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="Datentabelle.png" alt="Protokollix Hauptansicht" width="700"><br>
   <em>Abbildung 1: Die integrierte Tabelle zur Dateneingabe und Manipulation</em>
 </p>
-
-<br>
 
 Sofern keine Messdaten importiert wurden, ist es möglich, Daten in die Tabelle einzugeben und auch wieder zu löschen. Sollten die eingegebenen Messwerte unvollständig sein (also z. B. ein X-Wert oder ein Y-Wert vergessen), so verschwindet der entsprechende Datenpunkt im Plot – der Fehler wird automatisch im Hintergrund abgefangen. Nachdem man Daten auf diese Weise hinzugefügt hat, muss noch im zentralen Messdaten-Auswahlfenster unter dem Tab **Allgemeines** der neu hinzugefügte Datensatz ausgewählt werden:
 
 <p align="center">
-  <img src="docs/Aktiverdatensatz.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="Aktiverdatensatz.png" alt="Protokollix Hauptansicht" width="700"><br>
   <em>Abbildung 2: Der Aktive Datensatz muss im Anschluss über ein kleines Menü ausgewählt werden.</em>
 </p>
 
-<br>
-
 Die Option `Keine Daten geladen` verschwindet aus dem Auswahlfenster, sobald Daten über den Importierbutton importiert wurden. Die Tabellenansicht kann weiters dafür benutzt werden, um bestehende Messdaten nachträglich geringfügig zu manipulieren – sprich einen Wert durch einen anderen zu ersetzen. Es ist nicht möglich, bereits geladene Wertepaare ganz aus dem Datensatz zu löschen, hierfür muss die Exceltabelle des Imports angepasst werden und anschließend neu geladen werden.
 
-> [!TIP]
-> Es empfiehlt sich nicht, Protokollix zu benutzen, um Messdaten in der eingebauten Tabelle direkt nach dem Messen im Labor zu protokollieren – hierfür ist eine Excel-Tabelle besser geeignet.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Es empfiehlt sich nicht, Protokollix zu benutzen, um Messdaten in der eingebauten Tabelle direkt nach dem Messen im Labor zu protokollieren – hierfür ist eine Excel-Tabelle besser geeignet.
+</div>
 
 ---
 
@@ -175,7 +181,7 @@ Die entsprechenden Eingabe- und Manipulationsfelder finden sich in den Tabs **Al
 Ein mögliches Beispiel für die verschiedenen Einstellungsmöglichkeiten könnte wie folgt aussehen:
 
 <p align="center">
-  <img src="docs/schwingung.png" alt="Bild einer gedämpften Schwingung" width="700"><br>
+  <img src="schwingung.png" alt="Bild einer gedämpften Schwingung" width="700"><br>
   <em>Abbildung 3: Ein Beispiel für einen Plot, der mit Protokollix erstellt wurde.</em>
 </p>
 
@@ -198,21 +204,20 @@ Zur Verfügung stehen (Stand September 2026):
 Häufig ist es in Versuchen nötig, einen Fit durch Messdaten zu legen. In Protokollix findet sich diese Funktion im **Rechner** Tab. Folgende Fits stehen zur Auswahl: 
 
 <p align="center">
-  <img src="docs/Fits.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="Fits.png" alt="Protokollix Hauptansicht" width="700"><br>
   <em>Abbildung 4: In einem Dropdown-Menü lässt sich der gewünschte Fit einfach auswählen.</em>
 </p>
-<br>
 
 Ein Fit kann jederzeit gelegt werden. Sobald eine Fitfunktion ausgewählt wurde, kann das Label (die Beschriftung) des Fits in dem darunterliegenden Textfeld eingegeben werden. Die Parameter *inklusive* deren Unsicherheiten werden sofort über dem Fit angezeigt, wie an folgendem Beispiel zu sehen ist:
-<br>
 
 <p align="center">
-  <img src="docs/Fittest.png" alt="Protokollix Hauptansicht" width="700"><br>
+  <img src="Fittest.png" alt="Protokollix Hauptansicht" width="700"><br>
   <em>Abbildung 5: Ein Beispiel für einen möglichen Fit. Die Fitparameter sind oben rechts zu sehen.</em>
 </p>
 
-> [!TIP]
-> Mehrere Fits im selben Plot sind derzeit *nicht* möglich, sind im Laboralltag aber auch sehr selten gefragt. 
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Mehrere Fits im selben Plot sind derzeit <em>nicht</em> möglich, sind im Laboralltag aber auch sehr selten gefragt.
+</div>
 
 ---
 
@@ -221,7 +226,7 @@ Ein Fit kann jederzeit gelegt werden. Sobald eine Fitfunktion ausgewählt wurde,
 Durch das Klicken auf den Button **Datenmanipulation | Fehlerrechnung** öffnet sich ein eigenes Fenster, der **Rechner**. Dieser enthält einige der wichtigsten Funktionen.
 
 <p align="center">
-  <img src="docs/Rechner.png" alt="Der Rechner öffnet sich" width="700"><br>
+  <img src="Rechner.png" alt="Der Rechner öffnet sich" width="700"><br>
   <em>Abbildung 6: Durch Klicken des Buttons öffnet sich der Rechner.</em>
 </p>
 
@@ -234,11 +239,13 @@ Ganz oben im neu geöffneten Fenster stehen drei Auswahlmöglichkeiten zur Verf�
 * **X-Daten & X-Errorbar (horizontal):** Wird diese Option gewählt, so beziehen sich sämtliche Rechnungen und Unsicherheiten auf die X-Daten. Ein automatisch generiertes `X` im Eingabefeld verdeutlicht dies zusätzlich. Ist diese Option gewählt, können also die vorher geladenen X-Daten manipuliert werden. Die aus den Unsicherheiten generierten Fehlerbalken sind horizontal, weil sie die X-Unsicherheiten angeben. Will man die manipulierten Daten im Anschluss exportieren, kann der Button `Daten speichern` genutzt werden.
 * **Nur Berechnen (Tabelle / Einzelwert):** Teilweise ist es im Laboralltag gar nicht notwendig, Daten zu plotten, sondern es reicht, eine einzelne Messreihe mathematisch zu manipulieren. Protokollix wurde in erster Linie für die Erstellung von Plots optimiert, besitzt jedoch auch eine Funktion für die reine Datenmanipulation ohne grafische Darstellung. Da das Programm beim Import über Excel/CSV immer X- und Y-Daten benötigt, steht im Größtfehlerrechner eine dritte Option zur Auswahl, die ausschließlich Berechnungen dient. Über einen extra Button `Lade einzelne Datenspalte` kann eine einzelne Y-Messreihe geladen und – wie schon bei X- und Y-Daten – manipuliert werden. Im Anschluss können die neu berechneten Daten und ihre Unsicherheiten mithilfe des Buttons `Daten speichern` exportiert werden. 
 
-> [!TIP]
-> Im `Nur Berechnen (Tabelle / Einzelwert)` Menü wird auch mithilfe von `Y` auf die geladenen Daten zugegriffen! 
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Im <code>Nur Berechnen (Tabelle / Einzelwert)</code> Menü wird auch mithilfe von <code>Y</code> auf die geladenen Daten zugegriffen!
+</div>
 
-> [!TIP]
-> Nicht verwirren lassen: Häufig werden die Messachsen in der Physik nicht mit `X` und `Y` bezeichnet – sondern z. B. mit `t (für die Zeit)` oder `x (für den Weg)`. Im Größtfehlerrechner erfolgt der Zugriff auf diese Messdaten trotzdem immer mit `X` und `Y` – das Programm kann nicht wissen, welche physikalische Größe gemessen wurde.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Nicht verwirren lassen: Häufig werden die Messachsen in der Physik nicht mit <code>X</code> und <code>Y</code> bezeichnet – sondern z. B. mit <code>t (für die Zeit)</code> oder <code>x (für den Weg)</code>. Im Größtfehlerrechner erfolgt der Zugriff auf diese Messdaten trotzdem immer mit <code>X</code> und <code>Y</code> – das Programm kann nicht wissen, welche physikalische Größe gemessen wurde.
+</div>
 
 ---
 
@@ -250,7 +257,7 @@ Direkt unter dem Auswahlmenü liegen die Zeilen **Mathematische Formel (gerender
 * **Mathematische Formel:** In diesem Feld können Befehle ähnlich wie bei einem Taschenrechner eingegeben werden.
 
 <p align="center">
-  <img src="docs/Rendering.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
+  <img src="Rendering.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
   <em>Abbildung 7: Ein Feld dient der gerenderten Darstellung, eines der Eingabe.</em>
 </p>
 
@@ -263,8 +270,9 @@ Der integrierte Rechner nutzt symbolische Computeralgebra (SymPy). Beim Eingeben
 `log(...)` berechnet den Zehnerlogarithmus ($\log_{10}$), während `ln(...)` für den natürlichen Logarithmus steht. Dies weicht zwar von gängigen Programmiersprachen-Konventionen ab, entspricht jedoch der vertrauten Tastenbelegung wissenschaftlicher Taschenrechner und der Schreibweise in der Vorlesung.
 * Numerische Ableitungen: `diff(y)` berechnet die numerische Ableitung `dy/dx`.
 
-> [!TIP]
-> Die Konstante $\pi$ wird durch `pi` eingegeben, nicht durch `Pi`! Vergiss nicht, dass die $e$-Funktion durch `exp(...)` eingegeben werden muss! 
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Die Konstante $\pi$ wird durch <code>pi</code> eingegeben, nicht durch <code>Pi</code>! Vergiss nicht, dass die $e$-Funktion durch <code>exp(...)</code> eingegeben werden muss!
+</div>
 
 <details>
 <summary><b>Beispiel anzeigen: Phasenraum einer gedämpften Schwingung darstellen</b></summary>
@@ -283,7 +291,7 @@ Deine Excel-Datei enthält Zeit $t$ (Spalte 1) und Auslenkung/Winkel $\varphi$ (
    * Gib im Transformationsfeld `diff(y)` ein (berechnet numerisch $\dot{\varphi} = \frac{d\varphi}{dt}$). Dadurch überschreiben wir die Zeitdaten auf der X-Achse, die wir hier nicht benötigen, mit der Winkelgeschwindigkeit $\omega$. Drücke `OK`.
 
 <p align="center">
-  <img src="docs/diff.png" alt="Ableitung der Winkelauslenkung" width="700"><br>
+  <img src="diff.png" alt="Ableitung der Winkelauslenkung" width="700"><br>
   <em>Abbildung 8: Um den Phasenraum zu erhalten, müssen die Y-Messdaten (Winkelauslenkung) numerisch abgeleitet werden.</em>
 </p>
 
@@ -291,7 +299,7 @@ Deine Excel-Datei enthält Zeit $t$ (Spalte 1) und Auslenkung/Winkel $\varphi$ (
    * Nach einem Klick auf `Achsenlimits automatisch anpassen` im Tab **Allgemeines** zeigt der Plot die typische spiralförmige Phasenraumtrajektorie, die mit fortschreitender Dämpfung in den Ursprung $(0, 0)$ hineinläuft.
 
 <p align="center">
-  <img src="docs/Phasenraum.png" alt="Phasenraumdarstellung" width="700"><br>
+  <img src="Phasenraum.png" alt="Phasenraumdarstellung" width="700"><br>
   <em>Abbildung 9: Das resultierende Phasenraumdiagramm der gedämpften Schwingung.</em>
 </p>
 </details>
@@ -312,19 +320,20 @@ $$\Delta f = \sum_i \left| \frac{\partial f}{\partial v_i} \right| \cdot \Delta 
 Im folgenden Beispiel wurden die Variablen `a` und `b` definiert und mit `y` multipliziert: $a = 1.5, \Delta a = 0.01$, Digits(a) = 1, $b = 2, \Delta b = 0.05$.
 
 <p align="center">
-  <img src="docs/Unsicherheiten.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
+  <img src="Unsicherheiten.png" alt="Ein Feld dient der schöneren Darstellung der Matheformel" width="700"><br>
   <em>Abbildung 10: Ein Beispiel für die Unsicherheitsangabe mit den Variablen a und b.</em>
 </p>
 
 Es ist auch möglich, Unsicherheiten zu importieren. Hier gilt wieder das Auswahlprinzip von oben: Ist im Menü `Y-Daten` ausgewählt, so werden die Unsicherheiten als Y-Unsicherheiten betrachtet; ist `X-Daten` ausgewählt, werden die Daten analog als X-Unsicherheiten betrachtet. Sollte eines davon der Fall sein, so wird das entsprechende Feld für die X- bzw. die Y-Unsicherheiten automatisch gesperrt, um Konflikte zu vermeiden – man muss sich also entscheiden, ob man die Unsicherheiten als Ganzes importieren oder manuell hinzufügen möchte. 
 
 <p align="center">
-  <img src="docs/ImportUnsicherheiten.png" alt="Die importierten Unsicherheiten" width="700"><br>
+  <img src="ImportUnsicherheiten.png" alt="Die importierten Unsicherheiten" width="700"><br>
   <em>Abbildung 11: Die Y-Unsicherheiten wurden über den Button „Importiere Y-Unsicherheiten aus Excel“ importiert.</em>
 </p>
 
-> [!TIP]
-> Natürlich ist es auch möglich, schrittweise zu arbeiten: So könnte man z. B. erst die Unsicherheiten für eine einzelne Messreihe berechnen (mithilfe des `Nur Berechnen (Tabelle / Einzelwert)`-Buttons), diese anschließend exportieren, danach die ursprünglichen X- und Y-Werte laden und die eben berechneten Unsicherheiten über den `Importiere Unsicherheiten`-Button hinzufügen. Diese Vorgehensweise empfiehlt sich vor allem bei komplexeren Aufgabenstellungen.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Natürlich ist es auch möglich, schrittweise zu arbeiten: So könnte man z. B. erst die Unsicherheiten für eine einzelne Messreihe berechnen (mithilfe des <code>Nur Berechnen (Tabelle / Einzelwert)</code>-Buttons), diese anschließend exportieren, danach die ursprünglichen X- und Y-Werte laden und die eben berechneten Unsicherheiten über den <code>Importiere Unsicherheiten</code>-Button hinzufügen. Diese Vorgehensweise empfiehlt sich vor allem bei komplexeren Aufgabenstellungen.
+</div>
 
 ---
 
@@ -341,8 +350,9 @@ Ganz unten im Größtfehlermenü befindet sich die Live-Vorschau der Daten, die 
 #### Anwenden und Zurücksetzen der Änderungen
 Ist man fertig mit den Berechnungen, können die nun neuen X- oder Y-Daten auf den Plot angewendet werden. **Unsicherheiten werden dabei automatisch zu Fehlerbalken!** Einmal angewendet, können die Daten im Tab **Daten** wieder zurückgesetzt werden – hierfür dienen die Buttons `X-Daten zurücksetzen` und `Y-Daten zurücksetzen`.
 
-> [!TIP]
-> Will man sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so ruft man den Größtfehlerrechner zwei Mal auf: Einmal oben X-Daten auswählen, berechnen und `OK` drücken; im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder mit `OK` bestätigen.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Will man sowohl die X-Messwerte als auch die Y-Messwerte manipulieren oder beiden Unsicherheiten hinzufügen, so ruft man den Größtfehlerrechner zwei Mal auf: Einmal oben X-Daten auswählen, berechnen und <code>OK</code> drücken; im Anschluss erneut öffnen, Y-Daten oben auswählen und wieder mit <code>OK</code> bestätigen.
+</div>
 
 ---
 
@@ -351,7 +361,7 @@ Ist man fertig mit den Berechnungen, können die nun neuen X- oder Y-Daten auf d
 Wiederholungsmessungen derselben physikalischen Größe erfordern im Laboralltag häufig eine statistische Auswertung über den arithmetischen Mittelwert und die empirische Standardabweichung. Ein Klick auf den Button **Mittelwertrechner** öffnet das separate Auswertungsfenster.
 
 <p align="center">
-  <img src="docs/Mittelwertrechner.png" alt="Der Mittelwert-Dialog" width="600"><br>
+  <img src="Mittelwertrechner.png" alt="Der Mittelwert-Dialog" width="600"><br>
   <em>Abbildung 12: Das Dialogfenster des Mittelwert-Rechners.</em>
 </p>
 
@@ -377,8 +387,9 @@ Messwerte können auch hier auf zwei Wegen übergeben werden:
 1. **Import via Excel/CSV:** Über den Import-Button im Dialog können gezielt Dateien eingelesen werden, die reine Messreihen enthalten. Unterstützt werden auch mehrere Spalten gleichzeitig, sodass verschiedene Messreihen in einem Durchgang analysiert werden. Das benötigte Format wird direkt beim Einlesen angezeigt. 
 2. **Manuelle Eingabe:** Ähnlich wie im Hauptprogramm steht eine direkte Tabellenansicht bereit, in die Messwerte zeilenweise eingetragen oder aus der Zwischenablage eingefügt werden können.
 
-> [!TIP]
-> Über den Button `Mittelwerte als Excel speichern` können beliebig viele gleichzeitig berechnete Mittelwerte gespeichert werden – was praktisch sein kann, um diese im Anschluss z. B. als neue Daten im Größtfehlerrechner zu laden. 
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Über den Button <code>Mittelwerte als Excel speichern</code> können beliebig viele gleichzeitig berechnete Mittelwerte gespeichert werden – was praktisch sein kann, um diese im Anschluss z. B. als neue Daten im Größtfehlerrechner zu laden.
+</div>
 
 <details>
 <summary><b>Beispiel anzeigen: Mittelwert von importierten Messwerten berechnen</b></summary>
@@ -386,13 +397,13 @@ Messwerte können auch hier auf zwei Wegen übergeben werden:
 Im folgenden Beispiel wurden mehrere Mittelwerte gleichzeitig berechnet:
 
 <p align="center">
-  <img src="docs/Mittelwertrechner_items.png" alt="Der Mittelwert-Dialog" width="700"><br>
+  <img src="Mittelwertrechner_items.png" alt="Der Mittelwert-Dialog" width="700"><br>
   <em>Abbildung 13: Parallele Auswertung mehrerer Messreihen im Mittelwert-Rechner.</em>
 </p>
 </details>
 
-
 ---
+
 ### Maxima- & Minima-Erkennung
 
 Für Resonanzkurven, gedämpfte Schwingungen oder spektroskopische Messungen bietet Protokollix eine automatisierte Peak-Erkennung auf Basis von `scipy.signal.find_peaks`. Die Steuerung befindet sich im Tab **Rechner** unter dem Bereich *Maxima / Minima*.
@@ -404,12 +415,13 @@ Für Resonanzkurven, gedämpfte Schwingungen oder spektroskopische Messungen bie
 * **Zeige lokale Minima:** Markiert alle Tiefpunkte entsprechend im Diagramm.
 
 <p align="center">
-  <img src="docs/Maxima.png" alt="Die Zeige Maxima Funktion" width="700"><br>
+  <img src="Maxima.png" alt="Die Zeige Maxima Funktion" width="700"><br>
   <em>Abbildung 14: Über ein Menü können die Maxima oder Minima der Daten angezeigt und exportiert werden.</em>
 </p>
 
-> [!NOTE]
-> Die Auswertung erfolgt strikt auf der aktuell ausgewählten Y-Messreihe. Die Auswahlliste und der Export-Button werden automatisch deaktiviert, wenn keine Daten geladen sind oder keine signifikanten Peaks erkannt wurden.
+<div style="background-color: #f1f8ff; border-left: 5px solid #0366d6; padding: 14px 18px; margin: 16px 0; border-radius: 4px; color: #24292e;">
+Die Auswertung erfolgt strikt auf der aktuell ausgewählten Y-Messreihe. Die Auswahlliste und der Export-Button werden automatisch deaktiviert, wenn keine Daten geladen sind oder keine signifikanten Peaks erkannt wurden.
+</div>
 
 #### Export der Extrema
 Über den Button **„Speichere Maxima / Minima als Excel“** können die gefundenen Wertepaare direkt als separate Excel- (`.xlsx`) oder CSV-Datei (`.csv`) exportiert werden. 
@@ -417,14 +429,3 @@ Für Resonanzkurven, gedämpfte Schwingungen oder spektroskopische Messungen bie
 Die exportierte Datei gliedert sich in vier Spalten:
 * `Minima (x)` & `Minima (y)`
 * `Maxima (x)` & `Maxima (y)`
-
-
-
----
-
-## Kontakt & Feedback
-
-Gefällt dir das Tool oder hast du einen Fehler gefunden?
-* Erstelle gerne ein **Issue** hier auf GitHub.
-* Oder schreibe eine E-Mail an: `jakob.breinl@edu.uni-graz.at`
-
