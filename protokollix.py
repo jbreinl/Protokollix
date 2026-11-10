@@ -917,6 +917,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             if fit_typ is not None and 'y_geplottet' in locals():
                 try:
                     self.polyfit_input_label.setEnabled(True)
+                    self.polyfit_input_label.setEnabled(True)
                     # Ausreichend Punkte für eine glatte Kurve generieren
                     x_fit_smooth = np.linspace(min(x_geplottet), max(x_geplottet), 200)
 
@@ -1102,7 +1103,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             try: 
 
                 #Mauszeiger auf "Beschäftigt" stellen
-                QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+                # 1. Vor dem Import-Lauf abfangen:
+                if sys.platform != "darwin":
+                    QApplication.setOverrideCursor(Qt.WaitCursor)
                 if dateiname.lower().endswith(".csv"):
                     # sep=None zusammen mit engine='python' erkennt automatisch Komma, Semikolon oder Tabulator!
                     # decimal=',' sorgt dafür, dass auch deutsche Kommazahlen (12,4) sauber als Float gelesen werden
@@ -1253,7 +1256,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 )
 
             finally:
-                QApplication.restoreOverrideCursor()
+                # 1. Vor dem Import-Lauf abfangen:
+                if sys.platform != "darwin":
+                    QApplication.restoreOverrideCursor()
 
     def save_plot(self):
             # Öffnet den System-Speicherdialog mit Dateityp-Filtern
