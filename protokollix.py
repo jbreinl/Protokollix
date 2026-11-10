@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import json
 import pandas as pd
 import numpy as np
 import sympy as sp
@@ -15,12 +16,15 @@ import matplotlib.ticker as ticker
 from matplotlib import mathtext
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import json
+import urllib.request 
+import traceback
 
 # Globaler Parser für schnelles Syntax-Checking im Speicher
 mathtext_parser = mathtext.MathTextParser("path")
 
 # 2. PySide6 Imports (strikt bereinigt: nur tatsächlich instanziierte Klassen)
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QColor, QAction, QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -120,7 +124,16 @@ TRANSLATIONS = {
         "lbl_dpi": "DPI beim Export:",
         "lbl_datentabelle": "Datentabelle:",
         "btn_deletealldata": "Alle Daten löschen",
-        "btn_save_maxmin" : "Speichere Maxima/Minima als Excel"
+        "btn_save_maxmin" : "Speichere Maxima/Minima als Excel",
+        "lbl_polyfitxlimits" : "Fit-Bereich:",
+        "lbl_deltax": "z.B. 10%, 4.234",
+        "lbl_xdigit": "z.B. 3",
+        "menubar_save": "Datei",
+        "menubar_savefile": "Datei speichern (.ptlx)",
+        "menubar_savefig": "Bild speichern",
+        "menubar_loadfile": "Datei öffnen (.ptlx)...",
+        "menubar_importdata": "Messreihe importieren..."
+
 
     },
     "en": {
@@ -191,15 +204,73 @@ TRANSLATIONS = {
         "lbl_dpi": "DPI for Export:",
         "lbl_datentabelle": "Data:",
         "btn_deletealldata": "Delete Data",
-        "btn_save_maxmin" : "Save Maxima/Minima"
+        "btn_save_maxmin" : "Save Maxima/Minima",
+        "lbl_polyfitxlimits" : "fitting range:",
+        "lbl_deltax": "e.g. 10%, 4.234",
+        "lbl_xdigit": "e.g. 3",
+        "menubar_save": "File",
+        "menubar_savefile": "Save File (.ptlx)",
+        "menubar_savefig": "Save plot",
+        "menubar_loadfile": "Open File (.ptlx)...",
+        "menubar_importdata": "Import Data..."
         
     }
 }
+
+class VersionCheckWorker(QThread): #geerbt von QThread, um dessen Funktionen zu haben
+    # Schickt ein Signal an die GUI: (neue_version, download_url)
+    update_verfuegbar = Signal(str, str) #Thread ist ein extra Background Fenster das nichts im Hauptfenster manipulieren darf, 
+    #sendet deshalb ein Signal, wie ein Bote
+
+    def __init__(self, aktuelle_version, check_url):
+        super().__init__()
+        self.aktuelle_version = aktuelle_version
+        self.check_url = check_url
+
+    def run(self): #ist eine vorgegebene Methode von QThread
+        try:
+            # 1. Schnelle Anfrage mit maximal 2 Sekunden Timeout (kein Hängenbleiben!)
+            req = urllib.request.Request(
+                self.check_url, 
+                headers={'User-Agent': 'Protokollix-App'} #User Agent, um nicht blockiert zu werden
+            )
+            import ssl
+            context = ssl._create_unverified_context()
+            with urllib.request.urlopen(req, timeout=2.0, context=context) as response:
+                daten = json.loads(response.read().decode('utf-8'))
+                online_version = daten.get("version", "").strip()
+                download_url = daten.get("url", "")
+
+                # 2. Versionsvergleich (z. B. "1.1.0" > "1.0.0")
+                if self.ist_neuere_version(self.aktuelle_version, online_version):
+                    self.update_verfuegbar.emit(online_version, download_url)
+        except Exception as e: 
+            import traceback
+            print(f"Fehler beim Update-Check: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            # Stillschweigend abbrechen bei Offline-Modus, Timeout oder Fehlern
+            pass
+
+    @staticmethod
+    def ist_neuere_version(lokal, online):
+        try:
+            v_lokal = [int(x) for x in lokal.split(".")] #Macht aus dem einen Version String z.B. "1.0.0" eine Liste an Werten
+            v_online = [int(x) for x in online.split(".")]
+            return v_online > v_lokal
+        except Exception:
+            return False
+
+
+
 #Vorläufige Hauptfunktion
 
 class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWindow gibt der Klasse alle Funktionen, die QMainWindow auch hat. 
     def __init__(self):
         super().__init__()
+    #App Version festlegen
+        self.APP_VERSION = "1.1.0"
+        self.UPDATE_URL = "https://raw.githubusercontent.com/jbreinl/Protokollix/refs/heads/main/version.json"
+
 
         self.aktuelle_sprache = "de" #Sprache festlegen
     # Fenstertitel und Anfangsgröße festlegen
@@ -223,6 +294,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.w = 5
         self.h = 4
 
+
         # Das Haupt-Widget und das Layout erstellen
         zentral_widget = QWidget()
         self.setCentralWidget(zentral_widget)
@@ -237,15 +309,38 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # Einmalig am Anfang ausführen, damit der Start-Titel gesetzt wird
         self.plot_aktualisieren()
 
+        self.starte_update_check()
+
     def setup_bedienfeld(self):
-    #Tab Bedienungsfeld
+
+        #Tab Bedienungsfeld
 
         self.tabs = QTabWidget()
 
         tab_label_widget = QWidget()
         layout_tab_label= QVBoxLayout()
-        # Erstellt ein neues Layout
+        
+        #Update Banner:
+        self.update_banner = QPushButton()
+        self.update_banner.setVisible(False)
+        self.update_banner.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.update_banner.setStyleSheet("""
+            QPushButton {
+                background-color: #e6f4ea;
+                color: #137333;
+                border: 1px solid #ceead6;
+                border-radius: 4px;
+                padding: 6px;
+                font-weight: bold;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background-color: #ceead6;
+            }
+        """)
 
+        # Ins oberste Layout einfügen:
+        layout_tab_label.addWidget(self.update_banner)  # oder in layout_tab_label ganz oben
 
     # Globale Auswahlschachtel für die aktive Y-Spalte
         
@@ -256,7 +351,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.aktive_y_combo = QComboBox()
         self.aktive_y_combo.addItem("No Data available")
         layout_y_auswahl.addWidget(self.aktive_y_combo)
-        self.menu_hilfebutton = MeinPlotterApp.erstelle_hilfe_button(self.get_hilfetext())
+        self.menu_hilfebutton = MeinPlotterApp.erstelle_hilfe_button(self.get_hilfetext_menu())
         layout_y_auswahl.addWidget(self.menu_hilfebutton)
         
         # Ganz oben ins Haupt-Bedienfeld einfügen
@@ -379,7 +474,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.limitskommastellen_slider.setSingleStep(1) #1er Schritte als Skalierung
         layout_tab_label.addWidget(self.limitskommastellen_slider)
 
-        self.update_limitkommastellen()
+    
         #--------------------------------------------------------------------------------------
 
         # Button zum automatischen Anpassen der Axen anlegen
@@ -423,9 +518,33 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.polyfit_combo.addItem("cubic", "poly_3")
         self.polyfit_combo.addItem("exponential: y = A · eᵇˣ", "exp")
         self.polyfit_combo.addItem("Andrade / Invers-Expo: y = A · eᵇᐟˣ", "andrade")
+        self.polyfit_combo.addItem("Exp. Decay / capacitor: A · e⁻ᴮᵗ + C", "kondensator_entladung")
         self.polyfit_combo.addItem("saturation: y = A · (1 - e⁻ᵇˣ)", "saettigung")
+        self.polyfit_combo.addItem("power function: A · xᴮ", "power")
+        self.polyfit_combo.addItem("Intensity with Offset: A/(x + d₀)² + B", "abstand_offset")
+        self.polyfit_combo.addItem("reciprocal: (A / x) + B", "reziprok")
+        self.polyfit_combo.addItem("logarithmic: y = A·ln(x) + B", "log")
         self.polyfit_combo.setCurrentIndex(0)
         trafo_tab_layout.addWidget(self.polyfit_combo)
+
+
+        # Polyfit Limits
+
+        self.polyfit_xlimits_label = QLabel()
+        trafo_tab_layout.addWidget(self.polyfit_xlimits_label)
+
+        polyfit_xlimits = QHBoxLayout()
+        self.polyfit_xmin = QDoubleSpinBox()
+        self.polyfit_xmin.setRange(-(10**10), (10**10))
+        polyfit_xlimits.addWidget(self.polyfit_xmin)
+
+        self.polyfit_xmax = QDoubleSpinBox()
+        self.polyfit_xmax.setRange(-(10**10), (10**10))
+        polyfit_xlimits.addWidget(self.polyfit_xmax)
+        self.polyfit_hilfebutton = MeinPlotterApp.erstelle_hilfe_button(self.get_hilfetext_polyfit())
+        polyfit_xlimits.addWidget(self.polyfit_hilfebutton)
+
+        trafo_tab_layout.addLayout(polyfit_xlimits)
 
         # Polyfit Label
         self.polyfit_input_label = QLineEdit()
@@ -643,6 +762,22 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 #Menüleiste oben hinzufügen
         menubar = self.menuBar()
         
+
+        #Speichern/Datei
+        self.save_menu = menubar.addMenu("Datei")
+        self.open_file = self.save_menu.addAction("Datei öffnen")
+        self.save_file = self.save_menu.addAction("Datei speichern")
+        self.importdata = self.save_menu.addAction("Messdaten importieren")
+        self.save_image = self.save_menu.addAction("Plot exportieren")
+        
+        
+
+        self.save_image.triggered.connect(self.save_plot)
+        self.save_file.triggered.connect(self.save_protokollixfile)
+        self.open_file.triggered.connect(self.load_protokollixfile)
+        self.importdata.triggered.connect(self.load_file)
+
+
         #Programm Menu
         self.name_menu = menubar.addMenu("Protokollix")
         self.action_about = self.name_menu.addAction("About Protokollix")
@@ -654,6 +789,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         sprachen_menu = self.bearbeiten_menu.addMenu("Sprache/Language")
         akt_deutsch = sprachen_menu.addAction("Deutsch")
         akt_englisch = sprachen_menu.addAction("English")
+
+        
 
         akt_deutsch.triggered.connect(lambda: self.sprache_wechseln("de"))
         akt_englisch.triggered.connect(lambda: self.sprache_wechseln("en"))
@@ -670,6 +807,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         # Verknüpfen der Tabs mit dem Hauptlayout
         self.haupt_layout.addWidget(self.tabs, 1)
         self.retranslate_ui()
+        self.update_limitkommastellen() #Auch einmal aufrufen
 
     def setup_plot(self):
         # Matplotlib Figure und Canvas erstellen
@@ -718,7 +856,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.logaxis_combo.currentTextChanged,
         self.markersize_spinbox.valueChanged,
         self.showmaxmin_combo.currentTextChanged,
-        self.slider_legendposition.valueChanged
+        self.slider_legendposition.valueChanged,
+        self.polyfit_xmax.valueChanged,
+        self.polyfit_xmin.valueChanged
         ):
             signal.connect(self.plot_aktualisieren)
 
@@ -898,11 +1038,15 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                         )
 
 
+        #Fit Block
 
-            # Fit-Block vorübergehend absichern (nimmt vorerst die letzte Spalte für den Fit)
+            #Daten aus der Box holen
+            xmin_fit = self.polyfit_xmin.value()
+            xmax_fit = self.polyfit_xmax.value()
+
+            
             aktive_spalte = self.aktive_y_combo.currentText()
-            if aktive_spalte in self.y_dict:
-                y_daten = self.y_dict[aktive_spalte]
+            y_daten = self.y_dict.get(aktive_spalte, None)
 
             fit_typ = self.polyfit_combo.currentData()
             polyfit_label = self.polyfit_input_label.text()
@@ -911,70 +1055,184 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             if not v_fit:
                 return
             if not self.pruefe_latex(polyfit_label): # Wichtige
-                return
+                return # return bricht an der stelle die gesamte Methode ab! 
+            
 
-
-            if fit_typ is not None and 'y_geplottet' in locals():
-                try:
+            #Maske erstellen
+            fitting_mask = (x_geplottet >= xmin_fit) & (x_geplottet <= xmax_fit)
+            fitting_points = np.sum(fitting_mask)
+            
+            #Absicherung einbauen
+            if fit_typ is not None and y_daten is not None: 
+                if fitting_points > 2: 
                     self.polyfit_input_label.setEnabled(True)
-                    self.polyfit_input_label.setEnabled(True)
-                    # Ausreichend Punkte für eine glatte Kurve generieren
-                    x_fit_smooth = np.linspace(min(x_geplottet), max(x_geplottet), 200)
+                    self.polyfit_heading_label.setText("Ausgleichskurve / Fit" if self.aktuelle_sprache == "de" else "Regression Curve / Fit" )
+                    x_data_forfit = x_geplottet[fitting_mask] 
+                    y_data_forfit = y_daten[fitting_mask] 
 
-                    #Polynom Fits-------------------------------------
-                    if str(fit_typ).startswith("poly_"):
-                        grad = int(fit_typ.split("_")[1])
-                        popt, pcov = np.polyfit(x_geplottet, y_daten, grad, cov = True)
-                        y_fit_smooth = np.polyval(popt, x_fit_smooth)
+                    try:
+                        # Ausreichend Punkte für eine glatte Kurve generieren
+                        x_fit_smooth = np.linspace(min(x_data_forfit), max(x_data_forfit), 1000)
 
-                        formel_text = self.erstelle_fit_formel(popt, pcov)
-                        self.polyfit_heading_label.setText(f"<b>Fit</b>: {formel_text}")
-                    # Nicht lineare Fits (SciPy Curve Fits)
+                        #Polynom Fits-------------------------------------
+                        if str(fit_typ).startswith("poly_"):
+                            grad = int(fit_typ.split("_")[1])
+                            popt, pcov = np.polyfit(x_data_forfit, y_data_forfit, grad, cov = True)
+                            y_fit_smooth = np.polyval(popt, x_fit_smooth)
 
-                    else:
-                        from scipy.optimize import curve_fit
-                    # Modell-Funktion wählen
-                        if fit_typ == "exp":
-                            func = self.model_exp
-                            p0 = [1.0, 0.1] # Startwerte für Iteration
-                        elif fit_typ == "andrade":
-                            func = self.model_andrade
-                            p0 = [1.0, 1.0]
-                        elif fit_typ == "saettigung":
-                            func = self.model_saettigung
-                            p0 = [1.0, 0.1]
+                            formel_text = self.erstelle_fit_formel(popt, pcov)
+                            self.polyfit_heading_label.setText(f"<b>Fit</b>: {formel_text}")
+                        # Nicht lineare Fits (SciPy Curve Fits)
 
-                        # 1. Curve Fit durchführen
-                        popt, pcov = curve_fit(func, x_geplottet, y_daten, p0 = p0, maxfev= 5000)
-                        A, B = popt
+                        else:
+                            from scipy.optimize import curve_fit
+                            # Modell-Funktion wählen
+                                # Modell-Funktion und Startwerte wählen
+                            # Standard-Eingangsdaten für normale Fits
+                            x_fit_input = x_data_forfit
+                            x_smooth_input = x_fit_smooth
 
-                        #Fehler aus der Kovarianzmatrix holen
-                        perr = np.sqrt(np.diag(pcov))
-                        err_A, err_B = perr[0], perr[1]
+                            if fit_typ == "exp":
+                                func = self.model_exp
+                                p0 = [1.0, 0.1]
+                            elif fit_typ == "andrade":
+                                func = self.model_andrade
+                                p0 = [1.0, 1.0]
+                            elif fit_typ == "saettigung":
+                                func = self.model_saettigung
+                                p0 = [1.0, 0.1]
+                            elif fit_typ == "power":
+                                func = self.model_power
+                                p0 = [1.0, 1.0]  # A=1.0, Exponent B=1.0 (linearer Start)
+                            elif fit_typ == "reziprok":
+                                func = self.model_inverse
+                                p0 = [1.0, 0.0]  # A=1.0, Offset B=0.0
+                            elif fit_typ == "log":
+                                func = self.model_log
+                                p0 = [1.0, 0.0]  # A=1.0, Offset B=0.0
+                            elif fit_typ == "abstand_offset":
+                                func = self.model_abstand_offset
+                                b_start = float(np.min(y_data_forfit))
+                                d0_start = 0.05
+                                # A ~ (y_max - B) * (x_min + d0)^2
+                                a_start = float(np.max(y_data_forfit) - b_start) * ((float(np.min(x_data_forfit)) + d0_start)**2)
+                                p0 = [a_start, d0_start, b_start]
+                            elif fit_typ == "kondensator_entladung":
+                                func = self.model_kondensator_entladung
+                                
+                                # 1. Nullpunktverschiebung auf Intervallanfang
+                                t0 = float(x_data_forfit[0])
+                                x_rel = x_data_forfit - t0
+                                x_smooth_rel = x_fit_smooth - t0
 
-                        #3. Y Werte für die Ausgleichsgerade berechnen
-                        y_fit_smooth = func(x_fit_smooth, A, B) # was macht das?
+                                # Übergabe-Arrays für den Fit auf relative Zeitachsen umstellen
+                                x_fit_input = x_rel
+                                x_smooth_input = x_smooth_rel
 
-                        str_A = self.format_html_zahl(A)
-                        str_B = self.format_html_zahl(B)
+                                # 2. Rausch-robuste Startwerte über Median der Randbereiche
+                                k = max(1, len(y_data_forfit) // 20)
+                                y_start = float(np.median(y_data_forfit[:k]))
+                                y_ende = float(np.median(y_data_forfit[-k:]))
 
-                        # 4. Formel und Parameter mitsamt Unsicherheiten (±) im Header ausgeben
-                        if fit_typ == "exp":
-                            formel_html = f"y = {str_A} · e<sup>{str_B}x</sup>"
-                        elif fit_typ == "andrade":
-                            formel_html = f"y = {str_A} · e<sup>{str_B}/x</sup>"
-                        elif fit_typ == "saettigung":
-                            formel_html = f"y = {str_A} · (1 - e<sup>-{str_B}x</sup>)"
+                                c_start = y_ende              # Grenzspannung U_G
+                                a_start = y_start - y_ende     # Spannungshub
+                                delta_t = float(x_rel[-1] - x_rel[0])
+                                b_start = 3.0 / delta_t if delta_t > 0 else 1000.0
 
-                        str_A_err = self.format_html_zahl(A, err_A)
-                        str_B_err = self.format_html_zahl(B, err_B)
-                        param_html = f"<br><small>A = {str_A_err}, B = {str_B_err}</small>"
-                        self.polyfit_heading_label.setText(f"<b>Fit:</b> {formel_html}{param_html}")
-                    # Fit-Linie zeichnen
-                    self.ax.plot(x_fit_smooth, y_fit_smooth, color="red", linestyle="--", label = polyfit_label)
+                                p0 = [a_start, b_start, c_start]
 
-                except Exception:
-                    self.polyfit_heading_label.setText("Fit fehlgeschlagen (Konvergenzfehler)")
+                            # 1. Curve Fit durchführen
+                            popt, pcov = curve_fit(func, x_fit_input, y_data_forfit, p0=p0, maxfev=10000)
+
+                            # 2. Unsicherheiten aus Kovarianzmatrix holen
+                            perr = np.sqrt(np.diag(pcov))
+
+                            # 3. Y-Werte für die glatte Kurve berechnen
+                            y_fit_smooth = func(x_smooth_input, *popt)
+
+                        # 4. Formel & Header formatieren
+                            if fit_typ == "kondensator_entladung":
+                                A, B, C = popt
+                                err_A, err_B, err_C = perr[0], perr[1], perr[2]
+
+                                tau = 1.0 / B if B != 0 else 0.0
+                                err_tau = err_B / (B**2) if B != 0 else 0.0
+
+                                str_A_err = self.format_html_zahl(A, err_A)
+                                str_B_err = self.format_html_zahl(B, err_B)
+                                str_C_err = self.format_html_zahl(C, err_C)
+                                str_tau = self.format_html_zahl(tau, err_tau)
+
+                                formel_html = f"y = {self.format_html_zahl(A)} · e<sup>-{self.format_html_zahl(B)}(t - t<sub>0</sub>)</sup> + {self.format_html_zahl(C)}"
+                                param_html = (
+                                    f"<br><small>A = {str_A_err}, B = {str_B_err}, C = {str_C_err}</small>"
+                                    f"<br><b>&tau; = {str_tau} s</b>"
+                                )
+                                self.polyfit_heading_label.setText(f"<b>Fit:</b> {formel_html}{param_html}")
+                
+                            elif fit_typ == "abstand_offset":
+                                A, d0, B = popt
+                                err_A, err_d0, err_B = perr[0], perr[1], perr[2]
+
+                                str_A_err = self.format_html_zahl(A, err_A)
+                                str_d0_err = self.format_html_zahl(d0, err_d0)
+                                str_B_err = self.format_html_zahl(B, err_B)
+
+                                vz_d0 = "+" if d0 >= 0 else "-"
+                                vz_B = "+" if B >= 0 else "-"
+
+                                formel_html = (
+                                    f"y = {self.format_html_zahl(A)} / "
+                                    f"(x {vz_d0} {self.format_html_zahl(abs(d0))})<sup>2</sup> "
+                                    f"{vz_B} {self.format_html_zahl(abs(B))}"
+                                )
+                                param_html = (
+                                    f"<br><small>A = {str_A_err}, "
+                                    f"d<sub>0</sub> = {str_d0_err} m, "
+                                    f"Offset = {str_B_err}</small>"
+                                )
+                                self.polyfit_heading_label.setText(f"<b>Fit:</b> {formel_html}{param_html}")
+
+                    
+                            else:
+                                A, B = popt
+                                err_A, err_B = perr[0], perr[1]
+
+                                str_A = self.format_html_zahl(A)
+                                str_B = self.format_html_zahl(B)
+
+                                if fit_typ == "exp":
+                                    formel_html = f"y = {str_A} · e<sup>{str_B}x</sup>"
+                                elif fit_typ == "andrade":
+                                    formel_html = f"y = {str_A} · e<sup>{str_B}/x</sup>"
+                                elif fit_typ == "saettigung":
+                                    formel_html = f"y = {str_A} · (1 - e<sup>-{str_B}x</sup>)"
+                                elif fit_typ == "power":
+                                    formel_html = f"y = {str_A} · x<sup>{str_B}</sup>"
+                                elif fit_typ == "reziprok":
+                                    # Vorzeichen für den konstanten Summand B sauber formatieren
+                                    vz = "+" if B >= 0 else "-"
+                                    str_abs_B = self.format_html_zahl(abs(B))
+                                    formel_html = f"y = ({str_A} / x) {vz} {str_abs_B}"
+                                elif fit_typ == "log":
+                                    vz = "+" if B >= 0 else "-"
+                                    str_abs_B = self.format_html_zahl(abs(B))
+                                    formel_html = f"y = {str_A} · ln(x) {vz} {str_abs_B}"
+                                
+                                str_A_err = self.format_html_zahl(A, err_A)
+                                str_B_err = self.format_html_zahl(B, err_B)
+                                param_html = f"<br><small>A = {str_A_err}, B = {str_B_err}</small>"
+                                self.polyfit_heading_label.setText(f"<b>Fit:</b> {formel_html}{param_html}")
+
+                        # 5. Fit-Linie zeichnen (x_fit_smooth bleibt auf der absoluten X-Achse des Plots!)
+                        self.ax.plot(x_fit_smooth, y_fit_smooth, color="red", linestyle="--", label=polyfit_label)
+                        
+                    except Exception as e: # Fehlermeldung direkt ausgeben
+                        import traceback
+                        traceback.print_exc()
+                        self.polyfit_heading_label.setText(f"Fit-Fehler: {type(e).__name__} ({e})")
+                else: 
+                    self.polyfit_heading_label.setText("Zu wenige Messpunkte im gewählten Fit Bereich" if self.aktuelle_sprache == "de" else "Too few data points in the chosen fit range")
             else:
                 self.polyfit_heading_label.setText("Ausgleichskurve / Fit:")
                 self.polyfit_input_label.setEnabled(False)
@@ -996,7 +1254,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
 
         # Maxima / Minima holen & Box sperren/freischalten
         maxmin_xval, maxmin_yval = self.calculate_locmaxmin()
-        self.showmaxmin_combo.setEnabled(maxmin_xval.size > 0)
+        hat_daten = (self.x_data is not None and len(self.x_data) > 2)
+        self.showmaxmin_combo.setEnabled(hat_daten)
         self.save_maxmin.setEnabled(maxmin_xval.size > 0)
 
         # Nur zeichnen, wenn nicht ausgeblendet
@@ -1103,9 +1362,8 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             try: 
 
                 #Mauszeiger auf "Beschäftigt" stellen
-                # 1. Vor dem Import-Lauf abfangen:
                 if sys.platform != "darwin":
-                    QApplication.setOverrideCursor(Qt.WaitCursor)
+                    QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                 if dateiname.lower().endswith(".csv"):
                     # sep=None zusammen mit engine='python' erkennt automatisch Komma, Semikolon oder Tabulator!
                     # decimal=',' sorgt dafür, dass auch deutsche Kommazahlen (12,4) sauber als Float gelesen werden
@@ -1223,6 +1481,9 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 self.y_min_input.setValue(float(min(erste_y_werte) - randy))
                 self.y_max_input.setValue(float(max(erste_y_werte) + randy))
 
+                self.polyfit_xmin.setValue(float(min(self.x_data)))
+                self.polyfit_xmax.setValue(float(max(self.x_data)))
+
                 # Signale wieder aktivieren
                 self.x_min_input.blockSignals(False)
                 self.x_max_input.blockSignals(False)
@@ -1256,7 +1517,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                 )
 
             finally:
-                # 1. Vor dem Import-Lauf abfangen:
                 if sys.platform != "darwin":
                     QApplication.restoreOverrideCursor()
 
@@ -1291,6 +1551,242 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                         "Fehler beim Speichern", 
                         f"Die Datei konnte nicht gespeichert werden:\n{str(e)}"
                     )
+
+    def save_protokollixfile(self):
+        print("Die Datei wurde gespeichert")
+        #Sämtliche Eingabefelder auslesen!
+        #c = current
+
+        #Generaltab
+        c_ar_w = self.figsize_x_input.value()
+        c_ar_h = self.figsize_y_input.value()
+        c_fontsize = self.fontsize_slider.value()
+
+        c_plot_title = "" if not self.titel_input.text().strip() else self.titel_input.text()
+        c_x_axis_lbl = "" if not self.x_label_input.text().strip() else self.x_label_input.text()
+        c_y_axis_lbl = "" if not self.y_label_input.text().strip() else self.y_label_input.text()
+        c_limits_xmin = self.x_min_input.value()
+        c_limits_xmax = self.x_max_input.value()
+        c_limits_ymin = self.y_min_input.value()
+        c_limits_ymax = self.y_max_input.value()
+        c_decimals = self.limitskommastellen_slider.value()
+        c_datalabel = "" if not self.legende_input.text().strip() else self.legende_input.text()
+
+        #Rechner
+        c_fit_model = self.polyfit_combo.currentIndex()
+        c_polyfit_xmin = self.polyfit_xmin.value()
+        c_polyfit_xmax = self.polyfit_xmax.value()
+
+        c_x_data = self.x_data.tolist() if self.x_data is not None else None 
+        if self.y_dict:
+            c_y_dict = {spalte: werte.tolist() for spalte, werte in self.y_dict.items()}
+        else:
+            c_y_dict = {}
+
+
+        #Rohdaten holen:
+        # Raw-Daten konvertieren
+        c_x_data_raw = self.x_data_raw.tolist() if self.x_data_raw is not None else None
+        c_y_dict_raw = {spalte: werte.tolist() for spalte, werte in self.y_dict_raw.items()} if self.y_dict_raw else {}
+
+        # In data_for_export einfügen:
+        
+        
+            #Aktuelle Y Spalte holen
+        c_yrow = self.aktive_y_combo.currentText()
+        c_y_data = self.y_dict.get(c_yrow, None)
+        c_y_data = c_y_data.tolist() if c_y_data is not None else None
+
+            #Aktuelle Errorbars holen, falls vorhanden
+        c_x_error = self.x_err.tolist() if self.x_err is not None else None
+      
+        c_y_styles = {}
+        for spalte, stil in self.y_styles.items():
+            stil_kopie = dict(stil)
+            if stil_kopie.get("y_err") is not None:
+                stil_kopie["y_err"] = stil_kopie["y_err"].tolist()
+            c_y_styles[spalte] = stil_kopie
+
+            #Achsen Maßstab
+        c_ax_scaling = self.logaxis_combo.currentIndex()
+
+       
+        c_showmaxmin = self.showmaxmin_combo.currentIndex() if self.showmaxmin_combo.currentData() in ("locmax", "locmin") else None
+    
+        
+        #Style
+        c_linestyle = self.linestyle_combo.currentIndex()
+        c_markerstyle = self.markerstyle_combo.currentIndex()
+        c_markersize = self.markersize_spinbox.value()
+        c_color  = self.plot_color.name()
+        c_legendposition = self.slider_legendposition.value()
+    #Data
+        c_exportdpi = self.slider_dpi.value()
+
+        data_for_export = {
+            "c_ar_w": c_ar_w,
+            "c_ar_h": c_ar_h,
+            "c_fontsize": c_fontsize,
+            "c_plot_title": c_plot_title,
+            "c_x_axis_lbl": c_x_axis_lbl,
+            "c_y_axis_lbl": c_y_axis_lbl,
+            "c_limits_xmin": c_limits_xmin,
+            "c_limits_xmax": c_limits_xmax,
+            "c_limits_ymin": c_limits_ymin,
+            "c_limits_ymax": c_limits_ymax,
+            "c_decimals": c_decimals,
+            "c_datalabel": c_datalabel,
+            "c_fit_model": c_fit_model,
+            "c_polyfit_xmin": c_polyfit_xmin,
+            "c_polyfit_xmax": c_polyfit_xmax,
+            "c_fit_label": self.polyfit_input_label.text(),
+            "c_grid": self.grid_checkbox.isChecked(),
+            "c_x_data": c_x_data,
+            "c_y_dict": c_y_dict,
+            "c_yrow": c_yrow,
+            "c_y_data": c_y_data,
+            "c_x_data_raw":  c_x_data_raw,
+            "c_y_dict_raw": c_y_dict_raw,
+            "c_x_error": c_x_error,
+            "c_y_styles": c_y_styles,
+            "c_ax_scaling": c_ax_scaling,
+            "c_showmaxmin": c_showmaxmin,
+            "c_linestyle": c_linestyle,
+            "c_markerstyle": c_markerstyle,
+            "c_markersize": c_markersize,
+            "c_color": c_color,
+            "c_legendposition": c_legendposition,
+            "c_exportdpi": c_exportdpi}
+
+
+        #Exportieren
+        filename, filter = QFileDialog.getSaveFileName(self, 
+            "Datei speichern", 
+            "Untitled.ptlx", 
+            "Protokollix Datei "
+            "(*.ptlx)")
+        
+        if filename:
+            try:
+                with open (filename, "w", encoding="utf-8") as file:
+                    json.dump(data_for_export, file, ensure_ascii=False)
+
+                QMessageBox.information(self, "Succes", f"The file has been saved: \n{filename}")
+
+            except Exception as e:
+                QMessageBox.critical(self, "An Error occured while saving", f"The file couldnt be saved: {e}")
+                print(e)
+                traceback.print_exc()
+
+    def load_protokollixfile(self):
+        # 1. Dateidialog öffnen
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Protokollix-Projekt öffnen",
+            "",
+            "Protokollix Datei (*.ptlx)"
+        )
+        if not filename:
+            return
+
+        try:
+            # 2. JSON-Datei einlesen
+            with open(filename, "r", encoding="utf-8") as file:
+                d = json.load(file)
+
+            # 3. Aktuelle Datenstrukturen wiederherstellen (Listen -> NumPy Arrays)
+            self.x_data = np.array(d["c_x_data"], dtype=float) if d.get("c_x_data") is not None else None
+            self.x_err = np.array(d["c_x_error"], dtype=float) if d.get("c_x_error") is not None else None
+
+            # Y-Daten-Dictionary aufbauen
+            self.y_dict = {}
+            if d.get("c_y_dict"):
+                for spalte, werte in d["c_y_dict"].items():
+                    self.y_dict[spalte] = np.array(werte, dtype=float)
+
+            # Raw-Daten wiederherstellen (mit Fallback auf self.x_data / self.y_dict für Abwärtskompatibilität)
+            if d.get("c_x_data_raw") is not None:
+                self.x_data_raw = np.array(d["c_x_data_raw"], dtype=float)
+            else:
+                self.x_data_raw = self.x_data.copy() if self.x_data is not None else None
+
+            if d.get("c_y_dict_raw"):
+                self.y_dict_raw = {k: np.array(v, dtype=float) for k, v in d["c_y_dict_raw"].items()}
+            else:
+                self.y_dict_raw = {k: v.copy() for k, v in self.y_dict.items()}
+
+            # y_styles wiederherstellen (inkl. y_err Array-Konvertierung)
+            self.y_styles = {}
+            if d.get("c_y_styles"):
+                for spalte, stil in d["c_y_styles"].items():
+                    stil_kopie = dict(stil)
+                    if stil_kopie.get("y_err") is not None:
+                        stil_kopie["y_err"] = np.array(stil_kopie["y_err"], dtype=float)
+                    self.y_styles[spalte] = stil_kopie
+            # Dropdown für Y-Spalten neu befüllen
+            self.aktive_y_combo.blockSignals(True)
+            self.aktive_y_combo.clear()
+            if self.y_dict:
+                for spalte in self.y_dict.keys():
+                    self.aktive_y_combo.addItem(spalte)
+                
+                # Zuvor aktive Spalte wieder anwählen
+                gespeicherte_spalte = d.get("c_yrow", "")
+                idx = self.aktive_y_combo.findText(gespeicherte_spalte)
+                if idx != -1:
+                    self.aktive_y_combo.setCurrentIndex(idx)
+            else:
+                t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
+                self.aktive_y_combo.addItem(t.get("y_data_combo", "No Data available"))
+            self.aktive_y_combo.blockSignals(False)
+
+            # Den Stil der aktiven Spalte in die Style-Widgets übertragen
+            self.lade_stil_in_gui()
+
+            # 4. GUI-Widgets befüllen
+            # Allgemeines
+            self.figsize_x_input.setValue(d.get("c_ar_w", 5.0))
+            self.figsize_y_input.setValue(d.get("c_ar_h", 4.0))
+            self.fontsize_slider.setValue(d.get("c_fontsize", 12))
+            self.limitskommastellen_slider.setValue(d.get("c_decimals", 2))
+
+            self.titel_input.setText(d.get("c_plot_title", ""))
+            self.x_label_input.setText(d.get("c_x_axis_lbl", ""))
+            self.y_label_input.setText(d.get("c_y_axis_lbl", ""))
+
+            self.x_min_input.setValue(d.get("c_limits_xmin", -10.0))
+            self.x_max_input.setValue(d.get("c_limits_xmax", 10.0))
+            self.y_min_input.setValue(d.get("c_limits_ymin", 0.0))
+            self.y_max_input.setValue(d.get("c_limits_ymax", 10.0))
+
+            # Rechner / Fits & Achsenskalierung
+            self.polyfit_combo.setCurrentIndex(d.get("c_fit_model", 0))
+            self.polyfit_xmin.setValue(d.get("c_polyfit_xmin", 0.0))
+            self.polyfit_xmax.setValue(d.get("c_polyfit_xmax", 10.0))
+            self.logaxis_combo.setCurrentIndex(d.get("c_ax_scaling", 0))
+
+            # In Abschnitt 4 von load_protokollixfile einfügen:
+            self.grid_checkbox.setChecked(d.get("c_grid", True))
+            self.polyfit_input_label.setText(d.get("c_fit_label", ""))
+            self.slider_legendposition.setValue(d.get("c_legendposition", 0))
+            self.slider_dpi.setValue(d.get("c_exportdpi", 2))
+            
+            if d.get("c_showmaxmin") is not None:
+                self.showmaxmin_combo.setCurrentIndex(d.get("c_showmaxmin", 0))
+
+           
+
+            
+
+            # 5. Tabellenansicht und Plot synchronisieren
+            self.update_datentabelle()
+            self.plot_aktualisieren()
+
+            QMessageBox.information(self, "Erfolg", f"Projekt erfolgreich geladen:\n{filename}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Fehler beim Laden", f"Die Datei konnte nicht geladen werden:\n{e}")
+            traceback.print_exc()
 
     def erstelle_fit_formel(self, coeffs, pcov):
         grad = len(coeffs) - 1
@@ -1365,6 +1861,26 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
     @staticmethod
     def model_saettigung(x, A, B):
         return A * (1 - np.exp(-B * x))
+    
+    @staticmethod
+    def model_kondensator_entladung(t, A, B, C):
+        return A * np.exp(-B * t) + C
+
+    @staticmethod
+    def model_power(x, A, B):
+        return A * (x ** B)
+    
+    @staticmethod
+    def model_inverse(x, A, B):
+        return (A / x) + B
+    
+    @staticmethod
+    def model_log(x, A, B):
+        return A * np.log(x) + B
+    
+    @staticmethod
+    def model_abstand_offset(x, A, d0, B):
+        return (A / ((x + d0)**2)) + B
 
     @staticmethod
     def pruefe_latex(text):
@@ -1397,6 +1913,10 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
     def format_html_zahl(self, val, err=None):
             """Formatiert eine Zahl (und optional ihren Fehler) sauber für HTML mit x10^n."""
             def single_fmt(x):
+                if x is None or np.isnan(x):
+                    return "-"
+                if np.isinf(x):
+                    return "∞"
                 if x == 0:
                     return "0"
                 abs_x = abs(x)
@@ -1476,13 +1996,25 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                         else:
                             digit_step = 1.0
                     else:
-                    # Für x/y: Schrittweite aus der eingegebenen Unsicherheit Δx bzw. Δy ableiten
-                        s_u = f"{u_var:.8f}".rstrip("0")
-                        if "." in s_u and len(s_u.split(".")[1]) > 0:
-                            stellen = len(s_u.split(".")[1])
-                            digit_step = 10.0 ** (-stellen)
+                        daten_array = werte_dict.get(var_name, None)
+                        if isinstance(daten_array, np.ndarray) and daten_array.size > 0:
+                            nachkommastellen = 0
+                            # Erste bis zu 20 Werte prüfen, um die maximale Nachkommastellenzahl zu finden
+                            stichprobe = daten_array[:20]
+                            for val in stichprobe:
+                                s_val = f"{val:.8f}".rstrip("0")
+                                if "." in s_val:
+                                    nachkommastellen = max(nachkommastellen, len(s_val.split(".")[1]))
+                            digit_step = 10.0 ** (-nachkommastellen) if nachkommastellen > 0 else 1.0
                         else:
-                            digit_step = 0.01
+                            # Fallback für Skalare
+                            u_skalar = float(np.mean(u_var)) if isinstance(u_var, np.ndarray) else float(u_var)
+                            s_u = f"{u_skalar:.8f}".rstrip("0")
+                            if "." in s_u and len(s_u.split(".")[1]) > 0:
+                                stellen = len(s_u.split(".")[1])
+                                digit_step = 10.0 ** (-stellen)
+                            else:
+                                digit_step = 0.001
 
                     digit_err = digit_step * digits_count
                 else:
@@ -1508,8 +2040,6 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         except Exception as e:
             print(f"Der Fehler wurde abgefangen: {e}")
             return None, None
-
-
 
     def oeffne_mittelwert_dialog(self):
         dialog = MittelwertDialog(parent = self, sprache = self.aktuelle_sprache)
@@ -1676,9 +2206,11 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.color_button.setText(t["choose_color"])
         self.btn_reset_xdata.setText(t["btn_xreset"])
         self.btn_reset_ydata.setText(t["btn_yreset"])
-        self.menu_hilfebutton.setToolTip(self.get_hilfetext())
+        self.menu_hilfebutton.setToolTip(self.get_hilfetext_menu())
+        self.polyfit_hilfebutton.setToolTip(self.get_hilfetext_polyfit())
         self.btn_deletealldata.setText(t["btn_deletealldata"])
         self.save_maxmin.setText(t["btn_save_maxmin"])
+
 
         # 5. Labels & Placeholdernamen anpassen
         self.label_aktiverDatensatz.setText(f"<b>{t['lbl_active_ds']}</b>")
@@ -1695,6 +2227,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.lbl_legendposition.setText(t["lbl_legendposition"])
         self.lbl_dpi.setText(t["lbl_dpi"])
         self.lbl_datentabelle.setText(t["lbl_datentabelle"])
+        self.polyfit_xlimits_label.setText(t["lbl_polyfitxlimits"])
         
         
 
@@ -1706,6 +2239,17 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             self.bearbeiten_menu.setTitle(t["menubar_edit"])
         if hasattr(self, "action_about"):
             self.action_about.setText(t["menu_about"])
+
+        if hasattr(self, "save_menu"):
+            self.save_menu.setTitle(t["menubar_save"])
+        if hasattr(self, "save_file"):
+            self.save_file.setText(t["menubar_savefile"])
+        if hasattr(self, "save_image"):
+            self.save_image.setText(t["menubar_savefig"])
+        if hasattr(self, "open_file"):
+            self.open_file.setText(t["menubar_loadfile"])
+        if hasattr(self, "importdata"):
+            self.importdata.setText(t["menubar_importdata"])
 
         # Plot anpassen
 
@@ -1760,11 +2304,26 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                         
     def update_limitkommastellen(self):
         decimals = self.limitskommastellen_slider.value()
+        #print(f"Die Aktuelle Anzahl an Nachkommastellen beträgt: {decimals}")
         self.y_max_input.setDecimals(decimals)
         self.y_min_input.setDecimals(decimals)
         self.x_max_input.setDecimals(decimals)
         self.x_min_input.setDecimals(decimals)
 
+        #Anzahl der Nachkommastellen zum Polyfit Label verknüpfen:
+        self.polyfit_xmin.setDecimals(decimals)
+        self.polyfit_xmax.setDecimals(decimals)
+
+        #Die Schrittweite entsprechend anpassen
+        step = 10**(-decimals)
+        self.y_max_input.setSingleStep(step)
+        self.y_min_input.setSingleStep(step)
+        self.x_max_input.setSingleStep(step)
+        self.x_min_input.setSingleStep(step)
+
+        self.polyfit_xmax.setSingleStep(step)
+        self.polyfit_xmin.setSingleStep(step)
+    
     def save_maxmin_excel(self):
         if self.x_data is None or not self.y_dict:
             return
@@ -1817,7 +2376,7 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     f"Die Datei konnte nicht gespeichert werden:\n\n{str(e)}"
                 )
 
-    def get_hilfetext(self):
+    def get_hilfetext_menu(self):
         if self.aktuelle_sprache == "de":
             return (
             "<b>Zentraler Datensatz-Selektor</b><br>"
@@ -1844,6 +2403,17 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
                     "<li><b>Style:</b> Color, line style, and marker type</li>"
                 "</ul>"
                 "<i>Tip: When switching datasets in the dropdown, all individual settings are saved automatically.</i>")
+        
+    def get_hilfetext_polyfit(self):
+        if self.aktuelle_sprache == "de": 
+            return("Die Anzahl der verfügbaren Nachkommestellen des Fit-Bereichs ist direkt an die" \
+            " Nachkommestellen der Achsenlimits gekoppelt. Um diese anzupassen, navigiere einfach ins Menü <b> Allgemeines </b> " \
+            " und passe unter <b> Anzahl an Nachkommastellen der Limits </b> die Nachkommastellen an.")
+
+        if self.aktuelle_sprache == "en":
+            return("The number of available decimal places for the fit range is directly linked to the decimal places of the axis limits. " \
+            " To adjust these, simply navigate to the <b>General</b> menu and change the decimal places under <b>Adjust Axis Limits</b>."
+            )
 
     def update_legend_position(self):
         current_position = self.slider_legendposition.value()
@@ -2019,6 +2589,21 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
             self.datentabelle.blockSignals(False)
             print(f"Fehler bei Zelländerung: {type(e).__name__}: {e}")
 
+
+    def starte_update_check(self):
+        self.worker = VersionCheckWorker(self.APP_VERSION, self.UPDATE_URL)
+        self.worker.update_verfuegbar.connect(self.zeige_update_hinweis)
+        self.worker.start()
+
+    def zeige_update_hinweis(self, neue_version, download_url):
+        # Banner beschriften und sichtbar machen
+        self.update_banner.setText(f"🚀 Neue Version {neue_version} verfügbar! (Hier klicken)")
+        
+        # Klick öffnet direkt den Download-Link im Standardbrowser
+        import webbrowser
+        self.update_banner.clicked.connect(lambda: webbrowser.open(download_url))
+        self.update_banner.setVisible(True)
+
     def reset_everything(self):
         # 1. Datenstrukturen komplett leeren
         self.x_data = None
@@ -2030,56 +2615,105 @@ class MeinPlotterApp(QMainWindow): # Vererbung, also das übergeben von QMainWin
         self.y_dict = {}
         self.y_dict_raw = {}
         self.y_styles = {}
+        self.w = 5
+        self.h = 4
 
-        # 2. Dropdown für die Datenreihen zurücksetzen
+        # 2. Übersetzungen holen
         t = TRANSLATIONS.get(self.aktuelle_sprache, TRANSLATIONS["de"])
-        self.aktive_y_combo.blockSignals(True)
-        self.aktive_y_combo.clear()
-        self.aktive_y_combo.addItem(t.get("y_data_combo", "No Data available"))
-        self.aktive_y_combo.blockSignals(False)
 
-        # 3. Textfelder leeren
-        self.legende_input.blockSignals(True)
-        self.legende_input.clear()
-        self.legende_input.blockSignals(False)
+        # Liste aller Widgets, deren Signale kurz blockiert werden, um Render-Schleifen zu vermeiden
+        widgets_to_block = [
+            self.figsize_x_input, self.figsize_y_input, self.fontsize_slider,
+            self.titel_input, self.x_label_input, self.y_label_input,
+            self.x_min_input, self.x_max_input, self.y_min_input, self.y_max_input,
+            self.limitskommastellen_slider, self.legende_input,
+            self.polyfit_combo, self.polyfit_xmin, self.polyfit_xmax, self.polyfit_input_label,
+            self.logaxis_combo, self.showmaxmin_combo,
+            self.linestyle_combo, self.markerstyle_combo, self.markersize_spinbox,
+            self.grid_checkbox, self.slider_legendposition, self.slider_dpi,
+            self.aktive_y_combo, self.datentabelle
+        ]
+        for w in widgets_to_block:
+            w.blockSignals(True)
 
-        self.polyfit_input_label.blockSignals(True)
-        self.polyfit_input_label.clear()
-        self.polyfit_input_label.setEnabled(False)
-        self.polyfit_input_label.blockSignals(False)
+        try:
+            # 3. Tab "Allgemeines" zurücksetzen
+            self.figsize_x_input.setValue(5.0)
+            self.figsize_y_input.setValue(4.0)
+            self.fontsize_slider.setValue(12)
 
-        # 4. Fit- und Extrema-Auswahl zurücksetzen
-        self.polyfit_combo.blockSignals(True)
-        self.polyfit_combo.setCurrentIndex(0)
-        self.polyfit_combo.blockSignals(False)
+            self.titel_input.clear()
+            self.x_label_input.clear()
+            self.y_label_input.clear()
 
-        self.showmaxmin_combo.blockSignals(True)
-        self.showmaxmin_combo.setCurrentIndex(0)
-        self.showmaxmin_combo.setEnabled(False)
-        self.showmaxmin_combo.blockSignals(False)
-        self.save_maxmin.setEnabled(False)
+            self.x_min_input.setValue(-10.0)
+            self.x_max_input.setValue(10.0)
+            self.y_min_input.setValue(0.0)
+            self.y_max_input.setValue(10.0)
 
-        # 5. Datentabelle leeren und auf 50x10 Standardraster zurücksetzen
-        self.datentabelle.blockSignals(True)
-        self.datentabelle.clear()
-        self.datentabelle.setRowCount(50)
-        self.datentabelle.setColumnCount(10)
-        
-        # Header auf Standard beschriften (X, Y1, Y2, ...)
-        standard_header = ["X"] + [f"Y{i}" for i in range(1, 10)]
-        self.datentabelle.setHorizontalHeaderLabels(standard_header)
-        self.datentabelle.blockSignals(False)
+            self.limitskommastellen_slider.setValue(2)
+            self.legende_input.clear()
 
-        # 6. Plot zurücksetzen (leert die Achse und setzt den Anfangstitel)
+            # 4. Spalten-Auswahlbox zurücksetzen
+            self.aktive_y_combo.clear()
+            self.aktive_y_combo.addItem(t.get("y_data_combo", "No Data available"))
+
+            # 5. Tab "Data" / Rechner & Fit zurücksetzen
+            self.polyfit_combo.setCurrentIndex(0)
+            self.polyfit_xmin.setValue(0.0)
+            self.polyfit_xmax.setValue(10.0)
+            self.polyfit_input_label.clear()
+            self.polyfit_input_label.setEnabled(False)
+            self.polyfit_heading_label.setText(t.get("lbl_fit", "Ausgleichskurve / Fit:"))
+
+            self.logaxis_combo.setCurrentIndex(0)
+            self.showmaxmin_combo.setCurrentIndex(0)
+            self.showmaxmin_combo.setEnabled(False)
+            self.save_maxmin.setEnabled(False)
+
+            # 6. Tab "Style" zurücksetzen
+            self.linestyle_combo.setCurrentIndex(0)     # "None"
+            self.markerstyle_combo.setCurrentIndex(1)    # "point" (.)
+            self.markersize_spinbox.setValue(10.0)
+            self.grid_checkbox.setChecked(True)
+
+            self.plot_color = QColor("#1f77b4")
+            self.update_color_button_style()
+
+            self.slider_legendposition.setValue(0)
+            self.slider_legendposition.setEnabled(False)
+            self.lbl_legendposition.setText(self.update_legend_position())
+
+            # 7. Tab "Import/Export" zurücksetzen
+            self.slider_dpi.setValue(2)  # 300 DPI Standard
+
+            self.datentabelle.clear()
+            self.datentabelle.setRowCount(50)
+            self.datentabelle.setColumnCount(10)
+            standard_header = ["X"] + [f"Y{i}" for i in range(1, 10)]
+            self.datentabelle.setHorizontalHeaderLabels(standard_header)
+
+            # Auf ersten Tab zurückspringen
+            self.tabs.setCurrentIndex(0)
+
+        finally:
+            # Signale aller Widgets wieder freigeben
+            for w in widgets_to_block:
+                w.blockSignals(False)
+
+        # 8. Schrittweiten & Nachkommastellen auf die Standard-2 synchronisieren
+        self.update_limitkommastellen()
+
+        # 9. Plot vollständig mit Start-Titel neu zeichnen
         self.plot_aktualisieren()
 
         QMessageBox.information(
-                    self, 
-                    "Reset", 
-                    ("Alle Daten wurden gelöscht und alle Einstellungen zurückgesetzt!" if self.aktuelle_sprache == "de" else "Succesfully reset all data and!" ))
-
-
-
+            self,
+            "Reset",
+            "Alle Daten wurden gelöscht und alle Einstellungen auf den Startzustand zurückgesetzt!"
+            if self.aktuelle_sprache == "de"
+            else "Successfully reset all data and restored default settings!"
+        )
 
 class GroesstfehlerDialog(QDialog):
     #grundgerüst wird aufgebaut
@@ -2387,12 +3021,23 @@ class GroesstfehlerDialog(QDialog):
             if var_lower == ziel_var and self.imported_err is not None:
                 unsicherheiten[var] = self.imported_err
             else:
+                
                 txt = input_widget.text().strip()
                 if not txt or txt in ["Excel-Import", "Excel Import"]:
                     unsicherheiten[var] = 0.0
+
+                elif "%" in txt: #passt elif hier oder if?
+                    try: 
+                        value = float(txt.replace("%", "").replace(",","."))
+                        unsicherheiten[var] = np.abs(werte[var] * (value/100))
+                    except Exception as e:
+                        #print(f"Es ist ein fehler aufgetreten: {e}")
+                        unsicherheiten[var] = 0.0
+
                 else:
+
                     try:
-                        unsicherheiten[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt)
+                        unsicherheiten[var] = GroesstfehlerDialog.parse_zahl_eingabe(txt) # Wandelt hoch zahlen in Float um
                     except Exception:
                         unsicherheiten[var] = 0.0
 
@@ -2636,7 +3281,6 @@ class GroesstfehlerDialog(QDialog):
             except Exception as e:
                 QMessageBox.critical(self, "Fehler" if not is_en else "Error", f"Details: {str(e)}")
 
-
     def aktualisiere_button_status(self):
         nur_berechnen_aktiv = self.radio_nur_ausgabe.isChecked()
         self.btn_import_data.setEnabled(nur_berechnen_aktiv)
@@ -2822,7 +3466,7 @@ class MittelwertDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Mittelwert-Rechner")
         self.aktuelle_sprache = sprache
-        self.resize(675, 550)
+        self.resize(700, 550)
 
         #Hauptlayout
 
@@ -2847,6 +3491,17 @@ class MittelwertDialog(QDialog):
         self.btn_excel_save.clicked.connect(self.save_excel)
         layout_2_buttons.addWidget(self.btn_excel_save)
 
+        layout_unsicherheit = QHBoxLayout()
+        layout_unsicherheit.addWidget(QLabel("Δx:"))
+        self.mean_calculator_deltax_input = QLineEdit()
+        layout_unsicherheit.addWidget(self.mean_calculator_deltax_input)
+
+        layout_unsicherheit.addWidget(QLabel("±X digits:"))
+        self.mean_calculator_digit_input = QLineEdit()
+        layout_unsicherheit.addWidget(self.mean_calculator_digit_input)
+        layout_2_buttons.addLayout(layout_unsicherheit)
+
+
         layout_btn_excel.addWidget(MeinPlotterApp.erstelle_hilfe_button(self.get_hilfetext()))
         layout_btn_excel.addLayout(layout_2_buttons)
         self.layout.addLayout(layout_btn_excel)
@@ -2870,6 +3525,8 @@ class MittelwertDialog(QDialog):
 
         # 2. Signal verbinden: Wenn der Anwender eine Zelle editiert -> Live Neu berechnen!
         self.tabelle.cellChanged.connect(self.manuelle_eingabe_geandert)
+        self.mean_calculator_digit_input.textChanged.connect(self.aktualisiere_tabelle)
+        self.mean_calculator_deltax_input.textChanged.connect(self.aktualisiere_tabelle) # Führt zu fehlermeldung 
 
         # EINMAL retranslate_ui aufrufen
         self.retranslate_ui()
@@ -3048,6 +3705,34 @@ class MittelwertDialog(QDialog):
         ergebnisse = {}
         if not hasattr(self, "mittelwertspalten_dict"):
             return ergebnisse
+        
+        #Hier die Inputs abfragen für die 2 neu erscahffenen Felder
+        percent = False
+        
+    
+        #Ersten Input prüfen
+        delta_x_float = 0
+        delta_x_input = self.mean_calculator_deltax_input.text().strip().replace(",", ".")
+        if delta_x_input:
+            if "%" in delta_x_input: 
+                delta_x_input = delta_x_input.replace("%", "")
+                percent = True
+            
+            try: 
+                delta_x_float = float(delta_x_input)
+            except ValueError:
+                delta_x_float = 0.0
+
+        
+        #zweiten Input prüfen
+        digits_float = 0.0
+        digit_input = self.mean_calculator_digit_input.text().strip().replace(",", ".")
+        if digit_input:
+            try: 
+                digits_float = float(digit_input)
+            except ValueError:
+                digits_float = 0.0
+
 
         for spalten_name, werte in self.mittelwertspalten_dict.items():
             if len(werte) == 0:
@@ -3057,14 +3742,36 @@ class MittelwertDialog(QDialog):
             
             # Fehler des Mittelwerts: Standardabweichung / sqrt(N)
             if len(werte) > 1:
-                std_abw = np.std(werte, ddof=1)  # ddof=1 für korrigierte Stichproben-StdAbw
-                sem = std_abw / np.sqrt(len(werte)) # Standard Error of Mean
+                sem = np.std(werte, ddof=1) / np.sqrt(len(werte))  # ddof=1 für korrigierte Stichproben-StdAbw
             else:
                 sem = 0.0
+            #neue unsicherheiten dazurechnen
+
+            if percent == True: 
+                u_skala = abs(mittelwert) * (delta_x_float/100)
+
+            else: 
+                u_skala = delta_x_float
+
+            u_digit = 0.0 #Startwert
+            if digits_float > 0:
+                # Schrittweite aus den Werten ableiten (z. B. "12.34" -> 2 Nachkommastellen -> 0.01)
+                nachkommastellen = 0
+                for w in werte:
+                    s_w = f"{w}".rstrip("0")
+                    if "." in s_w:
+                        nachkommastellen = max(nachkommastellen, len(s_w.split(".")[1]))
+                schrittweite = 10.0 ** (-nachkommastellen) if nachkommastellen > 0 else 1.0
+                u_digit = digits_float * schrittweite
+
+            u_geraet = (u_skala + u_digit)
+            result = np.sqrt(sem**2 + u_geraet**2)
+
+                        
 
             ergebnisse[spalten_name] = {
                 "mean": mittelwert,
-                "sem": sem,
+                "sem": result,
                 "n": len(werte)
             }
             
@@ -3221,6 +3928,8 @@ class MittelwertDialog(QDialog):
         self.btn_excel_laden.setText(t["Mittelwert_open"])
         self.btn_excel_save.setText(t["Mittelwert_save"])
         self.lbl_dataAndresult.setText(f"<b>{t['mean_preview_table']}</b>")
+        self.mean_calculator_deltax_input.setPlaceholderText(t["lbl_deltax"])
+        self.mean_calculator_digit_input.setPlaceholderText (t["lbl_xdigit"])
         
 
 
